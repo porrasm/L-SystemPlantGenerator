@@ -70,6 +70,7 @@ public class LineMeshCreator2D {
         }
 
         Vector3 nextPos = LastPoint.Pos + direction.normalized * length;
+
         NextPoint(nextPos, nextWidth);
     }
 

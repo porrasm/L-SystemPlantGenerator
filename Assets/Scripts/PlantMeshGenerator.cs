@@ -9,15 +9,11 @@ public class PlantMeshGenerator : MonoBehaviour {
 
     #region fields
     [SerializeField]
-    private string start, rule;
-
-    private string treeString;
-
-    [SerializeField]
-    private int iterations = 1;
-
-    [SerializeField]
     private float angle = 15, width = 0.05f, length = 0.25f, iterationFactor = 0.75f;
+
+    [Space(20)]
+    [SerializeField]
+    private PlantSettings settings;
 
     private LineMeshCreator2D creator;
 
@@ -25,9 +21,26 @@ public class PlantMeshGenerator : MonoBehaviour {
     private LBranch node;
     #endregion
 
+    private void OnValidate() {
+        settings.Validate();
+    }
+
     private void Start() {
+        GeneratePlant();
+    }
+    private void Update() {
+        if (Input.GetKeyDown(KeyCode.Space)) {
+            GeneratePlant();
+        }
+    }
+
+    public void GeneratePlant() {
         long time = Timer.Time;
-        AnalyzeRule();
+
+        string treeString = settings.Grammar.PerformIterations(settings.Axiom, settings.Iterations);
+        Debug.Log("Tree string: " + treeString);
+        AnalyzeRule(treeString);
+
         Debug.Log("Analyzed " + Timer.Passed(time));
         creator = new LineMeshCreator2D(Vector3.zero, width);
         BuildTreeMesh(tree);
@@ -37,28 +50,8 @@ public class PlantMeshGenerator : MonoBehaviour {
         Debug.Log("Mesh built " + Timer.Passed(time));
     }
 
-    private string PerformIterations() {
-        string iteration = start;
-        for (int i = 0; i < iterations; i++) {
-            iteration = PerformIteration(iteration);
-        }
-        return iteration;
-    }
-    private string PerformIteration(string prev) {
-        StringBuilder s = new StringBuilder();
-        for (int i = 0; i < prev.Length; i++) {
-            if (char.ToLower(prev[i]) == 'f') {
-                s.Append(rule);
-            } else {
-                s.Append(prev[i]);
-            }
-        }
-        return s.ToString();
-    }
+    private void AnalyzeRule(string treeString) {
 
-    private void AnalyzeRule() {
-
-        treeString = PerformIterations();
         Debug.Log("Result: " + treeString.Length);
 
         tree = new LBranch();
@@ -88,8 +81,10 @@ public class PlantMeshGenerator : MonoBehaviour {
 
     public void BuildTreeMesh(LBranch node) {
         while (node != null) {
-            float length = LengthAtIteration(node.Depth);
-            creator.NextDirection(node.GetOrientationDirection(), length);
+
+            if (!node.IsRoot) {
+                creator.NextDirection(node.GetOrientationDirection(), length);
+            }
 
             foreach (LBranch child in node.Branches) {
                 creator.Branch();
@@ -118,6 +113,7 @@ public class LBranch {
     public float Orientation { get; set; }
     public float Width { get; set; }
 
+    public bool IsRoot { get => Prev == null && Parent == null; }
     public bool HasNext { get => Next != null; }
 
     public LBranch() {
