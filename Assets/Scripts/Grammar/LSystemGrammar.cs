@@ -9,6 +9,8 @@ using UnityEngine;
 public class LSystemGrammar : ISetting {
 
     #region fields
+    private const int LINE_LIMIT = 16383 - 4;
+
     private HashSet<char> reservedCharacters;
 
     [SerializeField]
@@ -42,6 +44,7 @@ public class LSystemGrammar : ISetting {
             if (!used.Add(r.Character)) {
                 Debug.LogError("Rule character was used multiple times");
             }
+            r.Validate();
         }
     }
     #endregion
@@ -52,19 +55,37 @@ public class LSystemGrammar : ISetting {
 
         string iteration = axiom.ToLower();
         for (int i = 0; i < iterations; i++) {
-            iteration = Iterate(iteration);
+            int lineCount;
+            string newIteration = Iterate(iteration, out lineCount);
+            if (lineCount > LINE_LIMIT) {
+                Debug.LogWarning("Too many iterations: " + iterations + ". Succesfully performed " + i + " iterations.");
+                break;
+            }
+            iteration = newIteration;
+            Debug.Log("Line count: " + lineCount);
         }
 
         return iteration;
     }
-    private string Iterate(string iteration) {
+
+    private string Iterate(string iteration, out int lineCount) {
         StringBuilder newIteration = new StringBuilder();
 
+        lineCount = 0;
         foreach (char c in iteration) {
             Rule rule;
             if (RuleByCharacter(c, out rule)) {
-                newIteration.Append(rule.GetRule());
+
+                string ruleString;
+                int ruleLineCount;
+                rule.GetRule(out ruleString, out ruleLineCount);
+
+                newIteration.Append(ruleString);
+                lineCount += ruleLineCount;
             } else {
+                if (c == 'f') {
+                    lineCount++;
+                }
                 newIteration.Append(c);
             }
         }

@@ -89,7 +89,7 @@ public class PlantMeshGenerator : MonoBehaviour {
     public void BuildTreeMesh(LBranch node) {
         while (node != null) {
 
-            if (!node.IsRoot) {
+            if (!node.IsBranchRoot) {
                 creator.NextDirection(node.GetOrientationDirection(), length);
             }
 
@@ -120,6 +120,7 @@ public class LBranch {
     public float Orientation { get; set; }
     public float Width { get; set; }
 
+    public bool IsBranchRoot { get => Prev == null; }
     public bool IsRoot { get => Prev == null && Parent == null; }
     public bool HasNext { get => Next != null; }
 

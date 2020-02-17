@@ -40,20 +40,26 @@ public class Rule : ISetting {
         }
     }
 
-    public string GetRule() {
+    public void GetRule(out string rule, out int lineCount) {
         
         float rangePos = RNG.SeededFloat;
 
-        foreach (ProbabilityRule rule in Rules) {
-            if (rangePos < rule.ProbabilityRange) {
-                return rule.Rule;
+        foreach (ProbabilityRule r in Rules) {
+            if (rangePos < r.ProbabilityRange) {
+                lineCount = r.LineCount();
+                rule = r.Rule;
+                return;
             }
         }
 
-        return Rules[0].Rule;
+        lineCount = Rules[0].LineCount();
+        rule = Rules[0].Rule;
     }
 
     public void Validate() {
         character = Char.ToLower(character);
+        foreach (ProbabilityRule r in Rules) {
+            r.Rule = r.Rule.ToLower();
+        }
     }
 }

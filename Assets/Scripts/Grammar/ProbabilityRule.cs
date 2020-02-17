@@ -9,4 +9,14 @@ public class ProbabilityRule {
     public string Rule;
     [NonSerialized]
     public double ProbabilityRange;
+
+    public int LineCount() {
+        int count = 0;
+        foreach (char c in Rule) {
+            if (c == GrammarChars.LINE_CHAR) {
+                count++;
+            }
+        }
+        return count;
+    }
 }

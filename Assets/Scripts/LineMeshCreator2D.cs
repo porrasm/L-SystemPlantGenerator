@@ -26,10 +26,7 @@ public class LineMeshCreator2D {
         lastPoint = branching.Pop();
     }
 
-    public void AddLine(VectorLine2D line) {
-        lines.Add(line);
-    }
-    public void NextPoint(Vector3 nextPos, float nextWidth = -1) {
+    private void NextPoint(Vector3 nextPos, float nextWidth = -1) {
 
         PointInfo p = LastPoint;
 
@@ -48,6 +45,19 @@ public class LineMeshCreator2D {
         lastPoint = p;
     }
 
+    public void NextDirection(Vector3 direction, float length, float nextWidth = -1) {
+        if (length <= 0) {
+            throw new Exception("Length was 0 or negative");
+        }
+        if (direction.normalized == Vector3.zero) {
+            throw new Exception("Invalid direction");
+        }
+
+        Vector3 nextPos = LastPoint.Pos + direction.normalized * length;
+
+        NextPoint(nextPos, nextWidth);
+    }
+
     private PointInfo lastPoint;
     private PointInfo LastPoint {
         get {
@@ -61,18 +71,7 @@ public class LineMeshCreator2D {
         }
     }
 
-    public void NextDirection(Vector3 direction, float length, float nextWidth = -1) {
-        if (length <= 0) {
-            throw new Exception("Length was 0 or negative");
-        }
-        if (direction.normalized == Vector3.zero) {
-            throw new Exception("Invalid direction");
-        }
-
-        Vector3 nextPos = LastPoint.Pos + direction.normalized * length;
-
-        NextPoint(nextPos, nextWidth);
-    }
+    
 
 
     public Mesh GenerateMesh() {
@@ -117,7 +116,8 @@ public class LineMeshCreator2D {
         }
 
         if (vertices.Count > 65535) {
-            Debug.Log("Too large mesh");
+            Debug.Log("line count: " + lines.Count);
+            Debug.Log("Too large mesh: " + vertices.Count);
             return null;
         }
 
@@ -127,8 +127,11 @@ public class LineMeshCreator2D {
 
         mesh.vertices = vertices.ToArray();
         mesh.triangles = triangles.ToArray();
-        mesh.normals = normals;
-        mesh.uv = uv;
+        // mesh.normals = normals;
+        // mesh.uv = uv;
+        mesh.RecalculateBounds();
+        mesh.RecalculateTangents();
+        mesh.RecalculateNormals();
 
         return mesh;
     }
