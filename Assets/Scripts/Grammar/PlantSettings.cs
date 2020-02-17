@@ -22,7 +22,8 @@ public class PlantSettings : ISetting {
     public bool UseSeed { get => useSeed; }
 
     [SerializeField]
-    private int seed;
+    [Range(0, int.MaxValue - 100)]
+    private int seed = RNG.Integer;
     public int Seed { get => seed; }
 
     [Header("Grammar settings")]
@@ -33,6 +34,5 @@ public class PlantSettings : ISetting {
 
     public void Validate() {
         grammar.Validate();
-
     }
 }

@@ -41,8 +41,8 @@ public class Rule : ISetting {
     }
 
     public string GetRule() {
-
-        float rangePos = UnityEngine.Random.value;
+        
+        float rangePos = RNG.SeededFloat;
 
         foreach (ProbabilityRule rule in Rules) {
             if (rangePos < rule.ProbabilityRange) {

@@ -35,6 +35,13 @@ public class PlantMeshGenerator : MonoBehaviour {
     }
 
     public void GeneratePlant() {
+
+        if (settings.UseSeed) {
+            RNG.SetSeed(settings.Seed);
+        } else {
+            RNG.SetSeed(RNG.Integer);
+        }
+
         long time = Timer.Time;
 
         string treeString = settings.Grammar.PerformIterations(settings.Axiom, settings.Iterations);
