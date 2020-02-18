@@ -14,6 +14,7 @@ public class PlantMeshGenerator : MonoBehaviour {
     [Space(20)]
     [SerializeField]
     private PlantSettings settings;
+    public PlantSettings Settings { get => settings; }
 
     private LineMeshCreator2D creator;
 

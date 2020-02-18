@@ -24,7 +24,7 @@ public class PlantSettings : ISetting {
     [SerializeField]
     [Range(0, int.MaxValue - 100)]
     private int seed = RNG.Integer;
-    public int Seed { get => seed; }
+    public int Seed { get => seed; set => seed = value; }
 
     [Header("Grammar settings")]
     [SerializeField]
