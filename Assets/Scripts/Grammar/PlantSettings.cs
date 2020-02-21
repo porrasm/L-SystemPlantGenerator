@@ -11,28 +11,35 @@ public class PlantSettings : ISetting {
     #region fields
     [SerializeField]
     private string axiom;
-    public string Axiom { get => axiom; }
-
     [SerializeField]
     private int iterations;
-    public int Iterations { get => iterations; }
-
     [SerializeField]
     private bool useSeed;
-    public bool UseSeed { get => useSeed; }
-
     [SerializeField]
-    [Range(0, int.MaxValue - 100)]
-    private int seed = RNG.Integer;
-    public int Seed { get => seed; set => seed = value; }
+    private int seed;
 
-    [Header("Grammar settings")]
     [SerializeField]
     private LSystemGrammar grammar;
-    public LSystemGrammar Grammar { get => grammar; }
+
+
+    public string Axiom { get => axiom; set => axiom = value; }
+    public int Iterations { get => iterations; set => iterations = value; }
+    public bool UseSeed { get => useSeed; set => useSeed = value; }
+    public int Seed { get => seed; set => seed = value; }
+    public LSystemGrammar Grammar { get => grammar; set => grammar = value; }
     #endregion
 
+    public PlantSettings() {
+        seed = RNG.Integer;
+        grammar = new LSystemGrammar();
+    }
+
     public void Validate() {
+
+        if (Axiom != null) {
+            Axiom = Axiom.ToLower();
+        }
+
         grammar.Validate();
     }
 }

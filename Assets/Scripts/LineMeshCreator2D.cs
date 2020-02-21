@@ -71,9 +71,6 @@ public class LineMeshCreator2D {
         }
     }
 
-    
-
-
     public Mesh GenerateMesh() {
 
         List<Vector3> vertices = new List<Vector3>();

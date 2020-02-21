@@ -8,22 +8,26 @@ using UnityEngine;
 public class PlantMeshGenerator : MonoBehaviour {
 
     #region fields
-    [SerializeField]
-    private float angle = 15, width = 0.05f, length = 0.25f, iterationFactor = 0.75f;
-
-    [Space(20)]
-    [SerializeField]
-    private PlantSettings settings;
-    public PlantSettings Settings { get => settings; }
 
     private LineMeshCreator2D creator;
 
     private LBranch tree;
     private LBranch node;
+
+    [SerializeField]
+    private float angle  = 15, width  = 0.05f, length  = 0.25f, iterationFactor= 0.75f;
+    [SerializeField]
+    private PlantSettings settings = new PlantSettings();
+
+    public float Angle { get => angle; set => angle = value; }
+    public float Width { get => width; set => width = value; }
+    public float Length { get => length; set => length = value; }
+    public float IterationFactor { get => iterationFactor; set => iterationFactor = value; }
+    public PlantSettings Settings { get => settings; set => settings = value; }
     #endregion
 
     private void OnValidate() {
-        settings.Validate();
+        Settings.Validate();
     }
 
     private void Start() {
@@ -37,20 +41,20 @@ public class PlantMeshGenerator : MonoBehaviour {
 
     public void GeneratePlant() {
 
-        if (settings.UseSeed) {
-            RNG.SetSeed(settings.Seed);
+        if (Settings.UseSeed) {
+            RNG.SetSeed(Settings.Seed);
         } else {
             RNG.SetSeed(RNG.Integer);
         }
 
         long time = Timer.Time;
 
-        string treeString = settings.Grammar.PerformIterations(settings.Axiom, settings.Iterations);
+        string treeString = Settings.Grammar.PerformIterations(Settings.Axiom, Settings.Iterations);
         Debug.Log("Tree string: " + treeString);
         AnalyzeRule(treeString);
 
         Debug.Log("Analyzed " + Timer.Passed(time));
-        creator = new LineMeshCreator2D(Vector3.zero, width);
+        creator = new LineMeshCreator2D(Vector3.zero, Width);
         BuildTreeMesh(tree);
         Debug.Log("Tree build " + Timer.Passed(time));
         Debug.Log("Tree count: " + tree.Count);
@@ -74,10 +78,10 @@ public class PlantMeshGenerator : MonoBehaviour {
             node = node.Append();
         }
         if (c == '+') {
-            node.Orientation += angle;
+            node.Orientation += Angle;
         }
         if (c == '-') {
-            node.Orientation -= angle;
+            node.Orientation -= Angle;
         }
         if (c == '(') {
             node = node.AddChild();
@@ -91,7 +95,7 @@ public class PlantMeshGenerator : MonoBehaviour {
         while (node != null) {
 
             if (!node.IsBranchRoot) {
-                creator.NextDirection(node.GetOrientationDirection(), length);
+                creator.NextDirection(node.GetOrientationDirection(), Length);
             }
 
             foreach (LBranch child in node.Branches) {
@@ -105,7 +109,7 @@ public class PlantMeshGenerator : MonoBehaviour {
     }
 
     private float LengthAtIteration(int iteration) {
-        return Mathf.Pow(iterationFactor, iteration) * length;
+        return Mathf.Pow(IterationFactor, iteration) * Length;
     }
 }
 

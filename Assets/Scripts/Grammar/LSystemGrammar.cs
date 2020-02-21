@@ -14,10 +14,15 @@ public class LSystemGrammar : ISetting {
     private HashSet<char> reservedCharacters;
 
     [SerializeField]
-    private List<Rule> variableRules;
+    private List<CharacterDefinition> characterDefinitions;
+
+    public List<CharacterDefinition> CharacterDefinitions { get => characterDefinitions; }
+
+    private Dictionary<char, CharacterDefinition> characters;
     #endregion
 
     public LSystemGrammar() {
+        characterDefinitions = new List<CharacterDefinition>();
         ReserveCharacters();
     }
     private void ReserveCharacters() {
@@ -37,26 +42,50 @@ public class LSystemGrammar : ISetting {
     }
     private void ValidateVariables() {
         HashSet<char> used = new HashSet<char>();
-        if (variableRules.Count == 0) {
-            Debug.LogError("Variable rule count was 0");
-        }
-        foreach (Rule r in variableRules) {
+        HashSet<char> aliases = new HashSet<char>();
+
+        foreach (CharacterDefinition r in characterDefinitions) {
             if (!used.Add(r.Character)) {
                 Debug.LogError("Rule character was used multiple times");
             }
             r.Validate();
+
+            if (r.Type == CharacterDefinition.CharacterType.Alias) {
+                if (!aliases.Add(r.Character)) {
+                    throw new Exception("Alias character cannot be " + r.Character);
+                }
+            }
+        }
+        foreach (CharacterDefinition r in characterDefinitions) {
+            if (r.Type == CharacterDefinition.CharacterType.Alias) {
+                foreach (char a in aliases) {
+                    if (r.Alias.Contains(a)) {
+                        throw new Exception("Alias cannot contain other aliases. Alias '" + r.Alias + "' contained '" + a + "'");
+                    }
+                }
+            }
         }
     }
     #endregion
 
     #region string transformation
     public string PerformIterations(string axiom, int iterations) {
+
+        Validate();
+        PrepareDictionary();
+
+        if (axiom == null || axiom.Length == 0) {
+            return "";
+        }
+
         AdjustProbabilities();
 
         string iteration = axiom.ToLower();
+        
         for (int i = 0; i < iterations; i++) {
             int lineCount;
             string newIteration = Iterate(iteration, out lineCount);
+            newIteration = TransformAliases(newIteration);
             if (lineCount > LINE_LIMIT) {
                 Debug.LogWarning("Too many iterations: " + iterations + ". Succesfully performed " + i + " iterations.");
                 break;
@@ -65,7 +94,16 @@ public class LSystemGrammar : ISetting {
             Debug.Log("Line count: " + lineCount);
         }
 
+        iteration = TransformAliases(iteration);
+
         return iteration;
+    }
+    private void PrepareDictionary() {
+        characters = new Dictionary<char, CharacterDefinition>();
+
+        foreach (CharacterDefinition c in CharacterDefinitions) {
+            characters.Add(c.Character, c);
+        }
     }
 
     private string Iterate(string iteration, out int lineCount) {
@@ -73,7 +111,7 @@ public class LSystemGrammar : ISetting {
 
         lineCount = 0;
         foreach (char c in iteration) {
-            Rule rule;
+            CharacterDefinition rule;
             if (RuleByCharacter(c, out rule)) {
 
                 string ruleString;
@@ -92,21 +130,48 @@ public class LSystemGrammar : ISetting {
 
         return newIteration.ToString();
     }
-    private bool RuleByCharacter(char c, out Rule rule) {
-        foreach (Rule r in variableRules) {
-            if (r.Character == c) {
-                rule = r;
-                return true;
+    private string TransformAliases(string iteration) {
+        StringBuilder newIteration = new StringBuilder();
+
+        foreach (char c in iteration) {
+            CharacterDefinition r;
+            if (RuleByCharacter(c, out r)) {
+                if (r.Type == CharacterDefinition.CharacterType.Alias) {
+                    newIteration.Append(r.Alias);
+                } else {
+                    newIteration.Append(c);
+                }
+            } else {
+                newIteration.Append(c);
             }
+        }
+
+        return newIteration.ToString();
+    }
+
+    private bool RuleByCharacter(char c, out CharacterDefinition rule) {
+        if (characters.ContainsKey(c)) {
+            rule = characters[c];
+            return true;
         }
         rule = null;
         return false;
     }
 
     private void AdjustProbabilities() {
-        foreach (Rule rule in variableRules) {
+        foreach (CharacterDefinition rule in characterDefinitions) {
             rule.AdjustProbabilities();
         }
     }
     #endregion
+
+    public static int LineCount(string rule) {
+        int count = 0;
+        foreach (char c in rule) {
+            if (c == GrammarChars.LINE_CHAR) {
+                count++;
+            }
+        }
+        return count;
+    }
 }
