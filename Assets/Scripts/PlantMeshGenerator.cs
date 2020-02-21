@@ -15,18 +15,24 @@ public class PlantMeshGenerator : MonoBehaviour {
     private LBranch node;
 
     [SerializeField]
-    private float angle  = 15, width  = 0.05f, length  = 0.25f, iterationFactor= 0.75f;
+    private float angle = 15;
     [SerializeField]
     private PlantSettings settings = new PlantSettings();
 
+    [SerializeField]
+    private bool generateOnSettingChange;
+
+    [SerializeField]
+    private int generateTimeLimit = 1000;
+
     public float Angle { get => angle; set => angle = value; }
-    public float Width { get => width; set => width = value; }
-    public float Length { get => length; set => length = value; }
-    public float IterationFactor { get => iterationFactor; set => iterationFactor = value; }
     public PlantSettings Settings { get => settings; set => settings = value; }
+    public bool GenerateOnSettingChange { get => generateOnSettingChange; set => generateOnSettingChange = value; }
+    public int GenerateTimeLimit { get => generateTimeLimit; set => generateTimeLimit = value; }
     #endregion
 
     private void OnValidate() {
+        Debug.Log("Validate");
         Settings.Validate();
     }
 
@@ -54,7 +60,7 @@ public class PlantMeshGenerator : MonoBehaviour {
         AnalyzeRule(treeString);
 
         Debug.Log("Analyzed " + Timer.Passed(time));
-        creator = new LineMeshCreator2D(Vector3.zero, Width);
+        creator = new LineMeshCreator2D(Vector3.zero, Settings.InitialState.Width);
         BuildTreeMesh(tree);
         Debug.Log("Tree build " + Timer.Passed(time));
         Debug.Log("Tree count: " + tree.Count);
@@ -66,7 +72,7 @@ public class PlantMeshGenerator : MonoBehaviour {
 
         Debug.Log("Result: " + treeString.Length);
 
-        tree = new LBranch();
+        tree = new LBranch(Settings.InitialState.Copy());
         node = tree;
 
         foreach (char c in treeString) {
@@ -78,10 +84,10 @@ public class PlantMeshGenerator : MonoBehaviour {
             node = node.Append();
         }
         if (c == '+') {
-            node.Orientation += Angle;
+            node.State.Orientation += Angle;
         }
         if (c == '-') {
-            node.Orientation -= Angle;
+            node.State.Orientation -= Angle;
         }
         if (c == '(') {
             node = node.AddChild();
@@ -95,7 +101,7 @@ public class PlantMeshGenerator : MonoBehaviour {
         while (node != null) {
 
             if (!node.IsBranchRoot) {
-                creator.NextDirection(node.GetOrientationDirection(), Length);
+                creator.NextDirection(node.GetOrientationDirection(), node.State.Length, node.State);
             }
 
             foreach (LBranch child in node.Branches) {
@@ -106,56 +112,5 @@ public class PlantMeshGenerator : MonoBehaviour {
 
             node = node.Next;
         }
-    }
-
-    private float LengthAtIteration(int iteration) {
-        return Mathf.Pow(IterationFactor, iteration) * Length;
-    }
-}
-
-public class LBranch {
-    public LBranch Parent { get; private set; }
-    public LBranch Prev { get; private set; }
-    public LBranch Next { get; private set; }
-    public List<LBranch> Branches { get; private set; }
-    public int Depth { get; private set; }
-
-    public int Count { get; private set; }
-
-    public float Orientation { get; set; }
-    public float Width { get; set; }
-
-    public bool IsBranchRoot { get => Prev == null; }
-    public bool IsRoot { get => Prev == null && Parent == null; }
-    public bool HasNext { get => Next != null; }
-
-    public LBranch() {
-        Branches = new List<LBranch>();
-    }
-
-    public LBranch AddChild() {
-        LBranch child = new LBranch();
-        child.Parent = this;
-        child.Orientation = Orientation;
-        child.Depth = Depth + 1;
-        child.Width = Width;
-        Branches.Add(child);
-        return child;
-    }
-    public LBranch Append() {
-        LBranch next = new LBranch();
-        next.Parent = Parent;
-        next.Prev = this;
-        this.Next = next;
-        next.Orientation = Orientation;
-        next.Width = Width;
-        return next;
-    }
-
-    public Vector3 GetOrientationDirection() {
-
-        Vector3 dir = Vector3.up;
-
-        return Quaternion.AngleAxis(Orientation, Vector3.forward) * dir;
     }
 }

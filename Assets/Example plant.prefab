@@ -45,8 +45,39 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: af6f90708ce472b4ebb5a9403d29ceb9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Settings:
-    Axiom: fff
+  angle: 15
+  width: 0.15
+  length: 0.25
+  iterationFactor: 0.75
+  settings:
+    axiom: f
+    iterations: 4
+    useSeed: 1
+    seed: 1921458816
+    grammar:
+      characterDefinitions:
+      - character: 102
+        rules:
+        - Probability: 0.065
+          Rule: f(+f)f(-f)f
+          ProbabilityRange: 0.020198880771825703
+        - Probability: 0.097
+          Rule: f(+f)f
+          ProbabilityRange: 0.050341827918332485
+        - Probability: 0.258
+          Rule: f(-f)f
+          ProbabilityRange: 0.13051584569957622
+        - Probability: 1
+          Rule: f(-f)f(+f)f
+          ProbabilityRange: 0.4412678689721341
+        - Probability: 0.798
+          Rule: f(+f)f(+f)f
+          ProbabilityRange: 0.6892479767274422
+        - Probability: 1
+          Rule: f(-f)f(-f)f
+          ProbabilityRange: 1
+        type: 0
+        alias: 
 --- !u!33 &9115035394526443601
 MeshFilter:
   m_ObjectHideFlags: 0

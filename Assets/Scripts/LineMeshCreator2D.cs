@@ -26,7 +26,7 @@ public class LineMeshCreator2D {
         lastPoint = branching.Pop();
     }
 
-    private void NextPoint(Vector3 nextPos, float nextWidth = -1) {
+    private void NextPoint(Vector3 nextPos, LineState state, float nextWidth = -1) {
 
         PointInfo p = LastPoint;
 
@@ -38,14 +38,14 @@ public class LineMeshCreator2D {
             throw new System.Exception("New line length was 0");
         }
 
-        VectorLine2D newLine = VectorLine2D.New(p.Pos, nextPos, p.Width, nextWidth);
+        VectorLine2D newLine = VectorLine2D.New(p.Pos, nextPos, state, p.Width, nextWidth);
         lines.Add(newLine);
         p.Pos = nextPos;
         p.Width = nextWidth;
         lastPoint = p;
     }
 
-    public void NextDirection(Vector3 direction, float length, float nextWidth = -1) {
+    public void NextDirection(Vector3 direction, float length, LineState state, float nextWidth = -1) {
         if (length <= 0) {
             throw new Exception("Length was 0 or negative");
         }
@@ -55,7 +55,7 @@ public class LineMeshCreator2D {
 
         Vector3 nextPos = LastPoint.Pos + direction.normalized * length;
 
-        NextPoint(nextPos, nextWidth);
+        NextPoint(nextPos, state, nextWidth);
     }
 
     private PointInfo lastPoint;
@@ -74,6 +74,7 @@ public class LineMeshCreator2D {
     public Mesh GenerateMesh() {
 
         List<Vector3> vertices = new List<Vector3>();
+        List<Color> colors = new List<Color>();
         List<int> triangles = new List<int>();
 
         for (int i = 0; i < lines.Count; i++) {
@@ -84,15 +85,16 @@ public class LineMeshCreator2D {
 
             foreach (Vector3 ver in v) {
                 vertices.Add(ver);
+                colors.Add(lines[i].State.Color);
             }
 
             triangles.Add(vIndex);
             triangles.Add(vIndex + 1);
             triangles.Add(vIndex + 3);
 
-            triangles.Add(vIndex);
-            triangles.Add(vIndex + 2);
             triangles.Add(vIndex + 3);
+            triangles.Add(vIndex + 2);
+            triangles.Add(vIndex);
 
             if (i > 0) {
                 triangles.Add(vIndex);
@@ -124,8 +126,9 @@ public class LineMeshCreator2D {
 
         mesh.vertices = vertices.ToArray();
         mesh.triangles = triangles.ToArray();
-        // mesh.normals = normals;
-        // mesh.uv = uv;
+        mesh.colors = colors.ToArray();
+        mesh.normals = normals;
+        mesh.uv = uv;
         mesh.RecalculateBounds();
         mesh.RecalculateTangents();
         mesh.RecalculateNormals();

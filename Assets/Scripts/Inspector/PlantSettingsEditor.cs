@@ -7,8 +7,11 @@ using UnityEngine;
 public class PlantSettingsEditor : Editor {
 
     #region fields
+    private PlantMeshGenerator generator;
+
     [SerializeField]
     private bool grammarFold;
+    private long lastGenerate = 0;
     #endregion
 
     public override void OnInspectorGUI() {
@@ -19,14 +22,25 @@ public class PlantSettingsEditor : Editor {
         Settings.Validate();
 
         Actions();
+
+        if (Generator.GenerateOnSettingChange && Timer.Passed(lastGenerate) > Generator.GenerateTimeLimit) {
+            lastGenerate = Timer.Time;
+            Generator.GeneratePlant();
+        }
+    }
+
+    private void OnValidate() {
+        Debug.Log("Validate");
     }
 
     private void GeneralSettingsUI() {
         InspectorGUI.CreateArea("General");
         Generator.Angle = InspectorGUI.FloatSlider("Angle", Generator.Angle, 0, 360);
-        Generator.Width = InspectorGUI.FloatField("Width", Generator.Width, 0, Mathf.Infinity);
-        Generator.Length = InspectorGUI.FloatField("Length", Generator.Length, 0, Mathf.Infinity);
-        Generator.IterationFactor = InspectorGUI.FloatField("Iteration factor", Generator.IterationFactor, 0, Mathf.Infinity);
+        Generator.GenerateOnSettingChange = InspectorGUI.BoolField("Generate on setting change", Generator.GenerateOnSettingChange);
+
+        if (Generator.GenerateOnSettingChange) {
+            Generator.GenerateTimeLimit = InspectorGUI.IntegerField("Generate time step", Generator.GenerateTimeLimit, 0, int.MaxValue);
+        }
 
         InspectorGUI.EndArea();
     }
@@ -37,18 +51,38 @@ public class PlantSettingsEditor : Editor {
         Settings.UseSeed = InspectorGUI.BoolField("Use seed", Settings.UseSeed);
 
         if (Settings.UseSeed) {
-            Settings.Seed = InspectorGUI.IntegerSlider("Iterations", Settings.Iterations, 0, int.MaxValue - 10);
+            Settings.Seed = InspectorGUI.IntegerSlider("Seed", Settings.Seed, 0, int.MaxValue - 10);
         }
 
         InspectorGUI.EndArea();
 
+        GUILayout.Label("Initial state");
+        EditState(Settings.InitialState);
+
         GrammarSettings();
     }
 
+    #region state editor
+    private void EditState(LineState state) {
+        InspectorGUI.CreateBox();
 
+        state.Orientation = InspectorGUI.FloatSlider("Orientation", state.Orientation, 0, 360);
+        state.Width = InspectorGUI.FloatField("Width", state.Width);
+        state.Length = InspectorGUI.FloatField("Length", state.Length);
+        state.Color = InspectorGUI.ColorField("Color", state.Color);
+
+        InspectorGUI.EndArea();
+    }
+    #endregion
 
     #region grammar rules
-    private bool detailedRuleEditMode;
+    private int detailedRuleEditMode;
+    private void ToggleEdit() {
+        detailedRuleEditMode++;
+        if (detailedRuleEditMode > 2) {
+            detailedRuleEditMode = 0;
+        }
+    }
 
     private void GrammarSettings() {
         if (InspectorGUI.CreateFoldedArea("Grammar settings", ref grammarFold)) {
@@ -89,7 +123,11 @@ public class PlantSettingsEditor : Editor {
         rule.Character = char.ToLower(charString[charString.Length - 1]);
 
         if (rule.Type == CharacterDefinition.CharacterType.Alias) {
-            rule.Alias = InspectorGUI.TextArea("Alias", rule.Alias, int.MaxValue, true);
+            rule.Alias = InspectorGUI.TextArea("", rule.Alias, int.MaxValue, true);
+            GUILayout.Space(10);
+            if (GUILayout.Button("Remove character definition")) {
+                Settings.Grammar.CharacterDefinitions.RemoveAt(index);
+            }
         } else if (rule.Type == CharacterDefinition.CharacterType.Variable) {
 
             if (rule.Character == default(char)) {
@@ -113,7 +151,7 @@ public class PlantSettingsEditor : Editor {
                     rule.Rules.Add(rule.DefaultRule);
                 }
                 if (GUILayout.Button("Edit")) {
-                    detailedRuleEditMode = !detailedRuleEditMode;
+                    ToggleEdit();
                 }
 
                 GUILayout.EndHorizontal();
@@ -137,18 +175,20 @@ public class PlantSettingsEditor : Editor {
         ProbabilityRule rule = charDef.Rules[index];
 
         string rString;
-        if (detailedRuleEditMode) {
+        if (detailedRuleEditMode == 2) {
             GUILayout.ExpandWidth(false);
-            rString = EditorGUILayout.TextArea(rule.Rule);
+            rString = EditorGUILayout.TextField(rule.Rule);
 
             if (GUILayout.Button("Remove")) {
                 charDef.Rules.RemoveAt(index);
             }
             //rule.Probability = InspectorGUI.FloatField("", rule.Probability, 0, 1);
             GUILayout.ExpandWidth(true);
-        } else {
+        } else if (detailedRuleEditMode == 0) {
             rString = EditorGUILayout.TextField(rule.Rule);
             rule.Probability = InspectorGUI.FloatSlider("", rule.Probability, 0, 1);
+        } else {
+            rString = EditorGUILayout.TextArea(rule.Rule);
         }
 
         if (rString == null || rString.Length == 0) {
@@ -166,21 +206,35 @@ public class PlantSettingsEditor : Editor {
         InspectorGUI.CreateBox();
 
         GUILayout.BeginHorizontal();
-        if (GUILayout.Button("Generate plant")) {
-            Generator.GeneratePlant();
+
+        if (Generator.GenerateOnSettingChange) {
+            GUI.enabled = false;
+            GUILayout.Button("Generate plant");
+            GUI.enabled = true;
+        } else {
+            if (GUILayout.Button("Generate plant")) {
+                Settings.Seed = RNG.Integer;
+                Generator.GeneratePlant();
+            }
         }
+
         if (GUILayout.Button("Generate seed")) {
             Settings.Seed = RNG.Integer;
         }
+        
         GUILayout.EndHorizontal();
 
         InspectorGUI.EndArea();
     }
     #endregion
 
+
     private PlantMeshGenerator Generator {
         get {
-            return (PlantMeshGenerator)target;
+            if (generator == null) {
+                generator = (PlantMeshGenerator)target;
+            }
+            return generator;
         }
     }
     private PlantSettings Settings {

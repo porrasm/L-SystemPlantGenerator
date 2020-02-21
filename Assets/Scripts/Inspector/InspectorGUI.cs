@@ -143,6 +143,18 @@ public static class InspectorGUI {
 
         return newValue;
     }
+
+    public static Color ColorField(string label, Color previousValue) {
+
+        GUILayout.BeginHorizontal();
+        if (label.Length > 0) {
+            GUILayout.Label(label);
+        }
+        Color newValue = EditorGUILayout.ColorField(previousValue);
+        GUILayout.EndHorizontal();
+
+        return newValue;
+    }
     #endregion
 
     #region helpers

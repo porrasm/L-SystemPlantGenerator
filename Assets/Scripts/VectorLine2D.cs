@@ -5,6 +5,7 @@ public struct VectorLine2D {
     public Vector3 EndPos;
     public float StartWidth;
     public float EndWidth;
+    public LineState State;
 
     public Vector3[] GetVertices() {
         Vector3[] vertices = new Vector3[4];
@@ -21,7 +22,7 @@ public struct VectorLine2D {
         return vertices;
     }
 
-    public static VectorLine2D New(Vector3 start, Vector3 end, float startW, float endW = -1) {
+    public static VectorLine2D New(Vector3 start, Vector3 end, LineState state, float startW, float endW = -1) {
         if (startW < 0) {
             throw new System.Exception("Width cannot be negative");
         }
@@ -34,6 +35,7 @@ public struct VectorLine2D {
         line.EndPos = end;
         line.StartWidth = startW;
         line.EndWidth = endW;
+        line.State = state;
 
         return line;
     }

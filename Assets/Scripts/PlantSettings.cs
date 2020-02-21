@@ -19,6 +19,9 @@ public class PlantSettings : ISetting {
     private int seed;
 
     [SerializeField]
+    private LineState initialState;
+
+    [SerializeField]
     private LSystemGrammar grammar;
 
 
@@ -27,11 +30,13 @@ public class PlantSettings : ISetting {
     public bool UseSeed { get => useSeed; set => useSeed = value; }
     public int Seed { get => seed; set => seed = value; }
     public LSystemGrammar Grammar { get => grammar; set => grammar = value; }
+    public LineState InitialState { get => initialState; set => initialState = value; }
     #endregion
 
     public PlantSettings() {
         seed = RNG.Integer;
         grammar = new LSystemGrammar();
+        initialState = new LineState();
     }
 
     public void Validate() {
