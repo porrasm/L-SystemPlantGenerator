@@ -29,6 +29,11 @@ public static class RNG {
         }
     }
 
+    public static float SeededRange(float min, float max) {
+        float diff = max - min;
+        return min + RNG.SeededFloat * diff;
+    }
+
     public static void SetSeed(int seed) {
         UnityEngine.Random.InitState(seed);
     }

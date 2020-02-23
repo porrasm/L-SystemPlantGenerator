@@ -22,7 +22,7 @@ public static class InspectorGUI {
     }
 
     public static bool CreateFoldedArea(string area, ref bool open, int dividerWidth = 0, int spaceWidth = 10) {
-        
+
         open = EditorGUILayout.Foldout(open, area);
 
         if (open) {
@@ -110,7 +110,7 @@ public static class InspectorGUI {
         if (horizontal) {
             GUILayout.BeginHorizontal();
         }
-        
+
         if (label.Length > 0) {
             GUILayout.Label(label);
         }
@@ -154,6 +154,32 @@ public static class InspectorGUI {
         GUILayout.EndHorizontal();
 
         return newValue;
+    }
+
+    public static void DistributionEditor(string label, ProbabilityDistribution dist) {
+
+        if (label.Length > 0) {
+            GUILayout.Label(label);
+        }
+
+        CreateBox();
+        dist.Accuracy = IntegerField("Accuracy", dist.Accuracy, 1);
+        float min = FloatField("Min value", dist.Min);
+        float max = FloatField("Min value", dist.Max);
+
+        GUILayout.Space(10);
+        dist.Curve = EditorGUILayout.CurveField(dist.Curve);
+        dist.Validate();
+
+        if (GUILayout.Button("Reset curve")) {
+            dist.ResetCurve();
+        }
+
+        EndArea();
+
+        if (max > min) {
+            dist.SetRange(min, max);
+        }
     }
     #endregion
 

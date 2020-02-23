@@ -42,6 +42,9 @@ public class PlantSettingsEditor : Editor {
             Generator.GenerateTimeLimit = InspectorGUI.IntegerField("Generate time step", Generator.GenerateTimeLimit, 0, int.MaxValue);
         }
 
+        GUILayout.Space(10);
+        InspectorGUI.DistributionEditor("Test distribution", Settings.CurveTest);
+
         InspectorGUI.EndArea();
     }
     private void GeneralPlantSettingUI() {
