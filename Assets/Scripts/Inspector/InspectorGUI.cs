@@ -162,23 +162,33 @@ public static class InspectorGUI {
             GUILayout.Label(label);
         }
 
-        CreateBox();
-        dist.Accuracy = IntegerField("Accuracy", dist.Accuracy, 1);
-        float min = FloatField("Min value", dist.Min);
-        float max = FloatField("Min value", dist.Max);
+        if (dist.Enabled) {
 
-        GUILayout.Space(10);
-        dist.Curve = EditorGUILayout.CurveField(dist.Curve);
-        dist.Validate();
+            CreateBox();
+            dist.Accuracy = IntegerField("Accuracy", dist.Accuracy, 1);
+            float min = FloatField("Min value", dist.Min);
+            float max = FloatField("Min value", dist.Max);
 
-        if (GUILayout.Button("Reset curve")) {
-            dist.ResetCurve();
-        }
+            GUILayout.Space(10);
+            dist.Curve = EditorGUILayout.CurveField(dist.Curve);
+            dist.Validate();
 
-        EndArea();
+            if (GUILayout.Button("Reset curve")) {
+                dist.ResetCurve();
+            }
+            if (GUILayout.Button("Disable distribution")) {
+                dist.Enabled = false;
+            }
 
-        if (max > min) {
-            dist.SetRange(min, max);
+            EndArea();
+
+            if (max > min) {
+                dist.SetRange(min, max);
+            }
+        } else {
+            if (GUILayout.Button("Enable distribution")) {
+                dist.Enabled = true;
+            }
         }
     }
     #endregion

@@ -13,6 +13,9 @@ public class ProbabilityDistribution {
     [SerializeField]
     private AnimationCurve curve;
 
+    [SerializeField]
+    private bool enabled;
+
     private const float maxValue = 1;
 
     private bool prepared;
@@ -30,6 +33,7 @@ public class ProbabilityDistribution {
     public AnimationCurve Curve { get => curve; set => curve = value; }
     public float Min { get => min; }
     public float Max { get => max; }
+    public bool Enabled { get => enabled; set => enabled = value; }
     #endregion
 
     #region initialization
@@ -127,6 +131,9 @@ public class ProbabilityDistribution {
     }
 
     public float GetSeededFloat() {
+        if (!enabled) {
+            return 0;
+        }
         if (!prepared) {
             throw new System.Exception("Distribution not prepared");
         }
