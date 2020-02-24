@@ -156,39 +156,71 @@ public static class InspectorGUI {
         return newValue;
     }
 
-    public static void DistributionEditor(string label, ProbabilityDistribution dist) {
+    public static void RangedFloatEditor(PlantSettingsEditor editor, string label, RangedFloat value, float min = 0, float max = 0, bool slider = false) {
 
-        if (label.Length > 0) {
-            GUILayout.Label(label);
-        }
-
-        if (dist.Enabled) {
-
+        if (editor.MenuFolds.Contains(value)) {
             CreateBox();
-            dist.Accuracy = IntegerField("Accuracy", dist.Accuracy, 1);
-            float min = FloatField("Min value", dist.Min);
-            float max = FloatField("Min value", dist.Max);
+            GUILayout.BeginHorizontal();
+            if (label.Length > 0) {
+                GUILayout.Label(label);
+            }
+
+            if (slider) {
+                value.TargetValue = Clamp(EditorGUILayout.Slider(value.TargetValue, min, max), min, max);
+            } else {
+                value.TargetValue = Clamp(EditorGUILayout.FloatField(value.TargetValue), min, max);
+            }
+
+            GUILayout.EndHorizontal();
 
             GUILayout.Space(10);
-            dist.Curve = EditorGUILayout.CurveField(dist.Curve);
-            dist.Validate();
-
-            if (GUILayout.Button("Reset curve")) {
-                dist.ResetCurve();
-            }
-            if (GUILayout.Button("Disable distribution")) {
-                dist.Enabled = false;
-            }
+            DistributionEditor(editor, value);
 
             EndArea();
-
-            if (max > min) {
-                dist.SetRange(min, max);
-            }
         } else {
-            if (GUILayout.Button("Enable distribution")) {
-                dist.Enabled = true;
+            GUILayout.BeginHorizontal();
+            if (label.Length > 0) {
+                GUILayout.Label(label);
             }
+
+            if (slider) {
+                value.TargetValue = Clamp(EditorGUILayout.Slider(value.TargetValue, min, max), min, max);
+            } else {
+                value.TargetValue = Clamp(EditorGUILayout.FloatField(value.TargetValue), min, max);
+            }
+
+            if (GUILayout.Button("Range")) {
+                editor.MenuFolds.Add(value);
+            }
+            GUILayout.EndHorizontal();
+        }
+
+        value.Validate();
+    }
+    public static void DistributionEditor(PlantSettingsEditor editor, RangedFloat value) {
+
+        ProbabilityDistributionEditor dist = value.Distribution;
+        dist.SetOffset(value.TargetValue);
+
+        dist.Enabled = BoolField("Enabled", dist.Enabled);
+        dist.Accuracy = IntegerField("Accuracy", dist.Accuracy, 1);
+        float min = FloatField("Min value", dist.AdjustedMin);
+        float max = FloatField("Min value", dist.AdjustedMax);
+
+        GUILayout.Space(10);
+        dist.Curve = EditorGUILayout.CurveField(dist.Curve);
+
+        GUILayout.BeginHorizontal();
+        if (GUILayout.Button("Reset curve")) {
+            dist.ResetCurve();
+        }
+        if (GUILayout.Button("Close edit menu")) {
+            editor.MenuFolds.Remove(value);
+        }
+        GUILayout.EndHorizontal();
+
+        if (max > min) {
+            dist.SetRange(min - value.TargetValue, max - value.TargetValue);
         }
     }
     #endregion

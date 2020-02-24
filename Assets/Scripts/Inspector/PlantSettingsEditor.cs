@@ -12,6 +12,8 @@ public class PlantSettingsEditor : Editor {
     [SerializeField]
     private bool grammarFold;
     private long lastGenerate = 0;
+
+    public HashSet<object> MenuFolds { get; set; } = new HashSet<object>();
     #endregion
 
     public override void OnInspectorGUI() {
@@ -43,7 +45,7 @@ public class PlantSettingsEditor : Editor {
         }
 
         GUILayout.Space(10);
-        InspectorGUI.DistributionEditor("Test distribution", Settings.CurveTest);
+        InspectorGUI.RangedFloatEditor(this, "Test float", Settings.FloatTet);
 
         InspectorGUI.EndArea();
     }

@@ -25,7 +25,7 @@ public class PlantSettings : ISetting {
     private LSystemGrammar grammar;
 
     [SerializeField]
-    private ProbabilityDistribution curveTest;
+    private RangedFloat floatTest;
 
     public string Axiom { get => axiom; set => axiom = value; }
     public int Iterations { get => iterations; set => iterations = value; }
@@ -33,14 +33,14 @@ public class PlantSettings : ISetting {
     public int Seed { get => seed; set => seed = value; }
     public LSystemGrammar Grammar { get => grammar; set => grammar = value; }
     public LineState InitialState { get => initialState; set => initialState = value; }
-    public ProbabilityDistribution CurveTest { get => curveTest; set => curveTest = value; }
+    public RangedFloat FloatTet { get => floatTest; set => floatTest = value; }
     #endregion
 
     public PlantSettings() {
         seed = RNG.Integer;
         grammar = new LSystemGrammar();
         initialState = new LineState();
-        curveTest = new ProbabilityDistribution();
+        floatTest = new RangedFloat();
     }
 
     public void Validate() {
