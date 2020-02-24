@@ -8,14 +8,11 @@ using UnityEngine;
 public class PlantMeshGenerator : MonoBehaviour {
 
     #region fields
-
     private LineMeshCreator2D creator;
 
     private LBranch tree;
     private LBranch node;
 
-    [SerializeField]
-    private float angle = 15;
     [SerializeField]
     private PlantSettings settings = new PlantSettings();
 
@@ -25,7 +22,6 @@ public class PlantMeshGenerator : MonoBehaviour {
     [SerializeField]
     private int generateTimeLimit = 1000;
 
-    public float Angle { get => angle; set => angle = value; }
     public PlantSettings Settings { get => settings; set => settings = value; }
     public bool GenerateOnSettingChange { get => generateOnSettingChange; set => generateOnSettingChange = value; }
     public int GenerateTimeLimit { get => generateTimeLimit; set => generateTimeLimit = value; }
@@ -60,7 +56,7 @@ public class PlantMeshGenerator : MonoBehaviour {
         AnalyzeRule(treeString);
 
         Debug.Log("Analyzed " + Timer.Passed(time));
-        creator = new LineMeshCreator2D(Vector3.zero, Settings.InitialState.Width);
+        creator = new LineMeshCreator2D(Vector3.zero, Settings.Properties.StartingLineWidth, Settings.Properties);
         BuildTreeMesh(tree);
         Debug.Log("Tree build " + Timer.Passed(time));
         Debug.Log("Tree count: " + tree.Count);
@@ -72,7 +68,7 @@ public class PlantMeshGenerator : MonoBehaviour {
 
         Debug.Log("Result: " + treeString.Length);
 
-        tree = new LBranch(Settings.InitialState.Copy());
+        tree = new LBranch(Settings.Properties.ToLineState());
         node = tree;
 
         foreach (char c in treeString) {
@@ -84,10 +80,10 @@ public class PlantMeshGenerator : MonoBehaviour {
             node = node.Append();
         }
         if (c == '+') {
-            node.State.Orientation += Angle;
+            node.State.Orientation += Settings.Properties.DefaultAngle;
         }
         if (c == '-') {
-            node.State.Orientation -= Angle;
+            node.State.Orientation -= Settings.Properties.DefaultAngle;
         }
         if (c == '(') {
             node = node.AddChild();
@@ -101,7 +97,7 @@ public class PlantMeshGenerator : MonoBehaviour {
         while (node != null) {
 
             if (!node.IsBranchRoot) {
-                creator.NextDirection(node.GetOrientationDirection(), node.State.Length, node.State);
+                creator.NextDirection(node.GetOrientationDirection(Settings.Properties.AngleVariance.GetSeededFloat()), node.State.Length, node.State);
             }
 
             foreach (LBranch child in node.Branches) {

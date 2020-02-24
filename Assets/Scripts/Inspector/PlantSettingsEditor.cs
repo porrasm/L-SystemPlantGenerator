@@ -1,19 +1,23 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
 
-[CustomEditor(typeof(PlantMeshGenerator))]
+[CustomEditor(typeof(PlantMeshGenerator)), CanEditMultipleObjects]
 public class PlantSettingsEditor : Editor {
 
     #region fields
     private PlantMeshGenerator generator;
 
-    [SerializeField]
     private bool grammarFold;
-    private long lastGenerate = 0;
 
     public HashSet<object> MenuFolds { get; set; } = new HashSet<object>();
+
+    private bool varianceFold;
+
+    private long lastGenerateTime;
+    private static int cycleIndex;
     #endregion
 
     public override void OnInspectorGUI() {
@@ -21,23 +25,53 @@ public class PlantSettingsEditor : Editor {
 
         GeneralSettingsUI();
         GeneralPlantSettingUI();
+        PlantPropertiesMenu();
+        GrammarSettings();
         Settings.Validate();
 
         Actions();
 
-        if (Generator.GenerateOnSettingChange && Timer.Passed(lastGenerate) > Generator.GenerateTimeLimit) {
-            lastGenerate = Timer.Time;
-            Generator.GeneratePlant();
+        if (Generator.GenerateOnSettingChange) {
+            StartGenerationCycle();
         }
     }
 
+    private async void StartGenerationCycle() {
+
+        cycleIndex++;
+        int index = cycleIndex;
+
+        long startTime = Timer.Time;
+
+        while (Generator.GenerateOnSettingChange && Timer.Passed(startTime) < 5000 && index == cycleIndex) {
+
+            Debug.Log("Cycle");
+
+            long sinceLast = Timer.Passed(lastGenerateTime);
+
+            if (sinceLast > Generator.GenerateTimeLimit) {
+                Generator.GeneratePlant();
+                lastGenerateTime = Timer.Time;
+            }
+            
+            int delay = 100;
+
+            if (Generator.GenerateTimeLimit > delay) {
+                delay = Generator.GenerateTimeLimit;
+            }
+
+            await Task.Delay(delay);
+        }
+
+        Debug.Log("Stop cycle " + index);
+    }
+
     private void OnValidate() {
-        Debug.Log("Validate");
+
     }
 
     private void GeneralSettingsUI() {
         InspectorGUI.CreateArea("General");
-        Generator.Angle = InspectorGUI.FloatSlider("Angle", Generator.Angle, 0, 360);
         Generator.GenerateOnSettingChange = InspectorGUI.BoolField("Generate on setting change", Generator.GenerateOnSettingChange);
 
         if (Generator.GenerateOnSettingChange) {
@@ -60,12 +94,54 @@ public class PlantSettingsEditor : Editor {
         }
 
         InspectorGUI.EndArea();
-
-        GUILayout.Label("Initial state");
-        EditState(Settings.InitialState);
-
-        GrammarSettings();
     }
+
+    #region properties
+    private void PlantPropertiesMenu() {
+
+        PlantProperties prop = Settings.Properties;
+
+        InspectorGUI.CreateBox();
+        GUILayout.Label("Plant properties");
+        GUILayout.Space(10);
+
+        // Scaling
+        prop.ScaleToLength = InspectorGUI.BoolField("Scale to length", prop.ScaleToLength);
+        prop.ScaleToWidth = InspectorGUI.BoolField("Scale to width", prop.ScaleToWidth);
+
+        if (prop.ScaleToLength) {
+            prop.TargetLength = InspectorGUI.FloatField("Target length", prop.TargetLength, 0, float.MaxValue);
+        }
+        if (prop.ScaleToWidth) {
+            prop.TargetWidth = InspectorGUI.FloatField("Target width", prop.TargetWidth, 0, float.MaxValue);
+        }
+
+        // General
+
+        GUILayout.Space(10);
+
+        prop.DefaultAngle = InspectorGUI.FloatSlider("Default angle", prop.DefaultAngle, 0, 360);
+        prop.StartingOrientation = InspectorGUI.FloatSlider("Starting orientation", prop.StartingOrientation, 0, 360);
+        prop.StartingLineLength = InspectorGUI.FloatField("Starting line length", prop.StartingLineLength, 0, float.MaxValue);
+        prop.StartingLineWidth = InspectorGUI.FloatField("Starting line width", prop.StartingLineWidth, 0, float.MaxValue);
+        prop.StartingColor = InspectorGUI.ColorField("Starting color", prop.StartingColor);
+
+        // Variance
+
+        GUILayout.Space(10);
+        if (InspectorGUI.CreateFoldedArea("Variance settings", ref varianceFold)) {
+            InspectorGUI.IndependentDistributinEditor("Angle", this, prop.AngleVariance);
+            InspectorGUI.IndependentDistributinEditor("Orientation", this, prop.StartOrientationVariance);
+            InspectorGUI.IndependentDistributinEditor("Line length", this, prop.LineLengthVariance);
+            InspectorGUI.IndependentDistributinEditor("Line width", this, prop.LineWidthVariance);
+            InspectorGUI.IndependentDistributinEditor("Plant length", this, prop.PlantLengthVariance);
+            InspectorGUI.EndFoldedArea();
+        }
+
+
+        InspectorGUI.EndArea();
+    }
+    #endregion
 
     #region state editor
     private void EditState(LineState state) {
@@ -120,7 +196,7 @@ public class PlantSettingsEditor : Editor {
         string charString = InspectorGUI.TextField("Character", "" + rule.Character);
         rule.Type = (CharacterDefinition.CharacterType)EditorGUILayout.EnumPopup(rule.Type);
         GUILayout.EndHorizontal();
-        
+
         if (charString.Length == 0) {
             charString = "" + default(char);
         }
@@ -168,7 +244,7 @@ public class PlantSettingsEditor : Editor {
             }
         }
 
-        
+
         GUILayout.EndVertical();
     }
     private void RuleRow(CharacterDefinition charDef, int index) {
@@ -218,7 +294,7 @@ public class PlantSettingsEditor : Editor {
             GUI.enabled = true;
         } else {
             if (GUILayout.Button("Generate plant")) {
-                Settings.Seed = RNG.Integer;
+                //Settings.Seed = RNG.Integer;
                 Generator.GeneratePlant();
             }
         }
@@ -226,8 +302,14 @@ public class PlantSettingsEditor : Editor {
         if (GUILayout.Button("Generate seed")) {
             Settings.Seed = RNG.Integer;
         }
-        
+
         GUILayout.EndHorizontal();
+
+        if (GUILayout.Button("Regenerate all")) {
+            foreach (PlantMeshGenerator g in GameObject.FindObjectsOfType<PlantMeshGenerator>()) {
+                g.GeneratePlant();
+            }
+        }
 
         InspectorGUI.EndArea();
     }

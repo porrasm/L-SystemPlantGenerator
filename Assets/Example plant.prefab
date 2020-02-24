@@ -28,7 +28,7 @@ Transform:
   m_GameObject: {fileID: 9115035394526443605}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1.0017, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
@@ -45,15 +45,173 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: af6f90708ce472b4ebb5a9403d29ceb9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  angle: 15
-  width: 0.15
-  length: 0.25
-  iterationFactor: 0.75
   settings:
     axiom: f
     iterations: 4
-    useSeed: 1
+    useSeed: 0
     seed: 1921458816
+    properties:
+      targetLength: 0.5
+      targetWidth: 0.5
+      scaleToLength: 1
+      scaleToWidth: 0
+      defaultAngle: 15
+      startingOrientation: 0
+      startingLineLength: 0.25
+      startingLineWidth: 0.05
+      startingColor: {r: 0, g: 0, b: 0, a: 0}
+      angleVariance:
+        accuracy: 100
+        min: -5
+        max: 5
+        curve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: -5
+            value: 0
+            inSlope: 0.2
+            outSlope: 0.2
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 5
+            value: 0
+            inSlope: -0.2
+            outSlope: -0.2
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        enabled: 0
+      lineLengthVariance:
+        accuracy: 100
+        min: -0.05
+        max: 0.05
+        curve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: -0.05
+            value: 0
+            inSlope: 20
+            outSlope: 20
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0.05
+            value: 0
+            inSlope: -20
+            outSlope: -20
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        enabled: 0
+      lineWidthVariance:
+        accuracy: 100
+        min: -0.01
+        max: 0.01
+        curve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: -0.01
+            value: 0
+            inSlope: 100
+            outSlope: 100
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0.01
+            value: 0
+            inSlope: -100
+            outSlope: -100
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        enabled: 0
+      plantLengthVariance:
+        accuracy: 100
+        min: -0.15
+        max: 0.15
+        curve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: -0.15
+            value: 0
+            inSlope: 6.6666665
+            outSlope: 6.6666665
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0.15
+            value: 0
+            inSlope: -6.6666665
+            outSlope: -6.6666665
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        enabled: 0
     grammar:
       characterDefinitions:
       - character: 102
@@ -78,6 +236,48 @@ MonoBehaviour:
           ProbabilityRange: 1
         type: 0
         alias: 
+    floatTest:
+      targetValue: 0
+      distribution:
+        accuracy: 100
+        min: -1
+        max: 1
+        curve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: -1
+            value: 0
+            inSlope: 1
+            outSlope: 1
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: -1
+            outSlope: -1
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.33333334
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        enabled: 0
+  generateOnSettingChange: 0
+  generateTimeLimit: 1000
 --- !u!33 &9115035394526443601
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -103,7 +303,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10302, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

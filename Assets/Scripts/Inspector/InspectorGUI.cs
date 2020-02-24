@@ -155,7 +155,9 @@ public static class InspectorGUI {
 
         return newValue;
     }
+    #endregion
 
+    #region distributions
     public static void RangedFloatEditor(PlantSettingsEditor editor, string label, RangedFloat value, float min = 0, float max = 0, bool slider = false) {
 
         if (editor.MenuFolds.Contains(value)) {
@@ -174,7 +176,7 @@ public static class InspectorGUI {
             GUILayout.EndHorizontal();
 
             GUILayout.Space(10);
-            DistributionEditor(editor, value);
+            DistributionEditorHelper(editor, value);
 
             EndArea();
         } else {
@@ -197,7 +199,8 @@ public static class InspectorGUI {
 
         value.Validate();
     }
-    public static void DistributionEditor(PlantSettingsEditor editor, RangedFloat value) {
+
+    private static void DistributionEditorHelper(PlantSettingsEditor editor, RangedFloat value) {
 
         ProbabilityDistributionEditor dist = value.Distribution;
         dist.SetOffset(value.TargetValue);
@@ -220,7 +223,43 @@ public static class InspectorGUI {
         GUILayout.EndHorizontal();
 
         if (max > min) {
-            dist.SetRange(min - value.TargetValue, max - value.TargetValue);
+            if (dist.SetRange(min - value.TargetValue, max - value.TargetValue)) {
+                dist.ResetCurve();
+            }
+        }
+        dist.Validate();
+    }
+
+    public static void IndependentDistributinEditor(string label, PlantSettingsEditor editor, ProbabilityDistributionEditor dist) {
+
+        if (dist.Enabled) {
+            CreateBox();
+            dist.Enabled = BoolField(label, dist.Enabled);
+            dist.Accuracy = IntegerField("Accuracy", dist.Accuracy, 1);
+
+            float min = FloatField("Min value", dist.Min);
+            float max = FloatField("Max value", dist.Max);
+
+            GUILayout.Space(10);
+            dist.Curve = EditorGUILayout.CurveField(dist.Curve);
+
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Reset curve")) {
+                dist.ResetCurve();
+            }
+            if (GUILayout.Button("Close edit menu")) {
+                editor.MenuFolds.Remove(dist);
+            }
+            GUILayout.EndHorizontal();
+            EndArea();
+            if (max > min) {
+                if(dist.SetRange(min, max)) {
+                    dist.ResetCurve();
+                }
+            }
+            dist.Validate();
+        } else {
+            dist.Enabled = BoolField(label, dist.Enabled);
         }
     }
     #endregion

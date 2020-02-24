@@ -11,6 +11,7 @@ public class LineState {
     public float Width = 0.05f;
     public float Length = 0.25f;
     public Color Color = Color.white;
+    // angle ??
     #endregion
 
     public LineState Copy() {

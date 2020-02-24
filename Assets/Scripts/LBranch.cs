@@ -37,10 +37,10 @@ public class LBranch {
         return next;
     }
 
-    public Vector3 GetOrientationDirection() {
+    public Vector3 GetOrientationDirection(float orientationAdd = 0) {
 
         Vector3 dir = Vector3.up;
 
-        return Quaternion.AngleAxis(State.Orientation, Vector3.forward) * dir;
+        return Quaternion.AngleAxis(State.Orientation + orientationAdd, Vector3.forward) * dir;
     }
 }

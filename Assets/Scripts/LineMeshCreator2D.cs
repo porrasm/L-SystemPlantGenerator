@@ -10,13 +10,16 @@ public class LineMeshCreator2D {
     private List<VectorLine2D> lines;
 
     private Stack<PointInfo> branching;
+
+    private PlantProperties properties;
     #endregion
 
-    public LineMeshCreator2D(Vector3 startPos, float startWidth) {
+    public LineMeshCreator2D(Vector3 startPos, float startWidth, PlantProperties properties) {
         this.startPos = startPos;
         this.startWidth = startWidth;
         branching = new Stack<PointInfo>();
         lines = new List<VectorLine2D>();
+        this.properties = properties;
     }
 
     public void Branch() {
@@ -38,14 +41,17 @@ public class LineMeshCreator2D {
             throw new System.Exception("New line length was 0");
         }
 
+        nextWidth += properties.LineWidthVariance.GetSeededFloat();
+
         VectorLine2D newLine = VectorLine2D.New(p.Pos, nextPos, state, p.Width, nextWidth);
         lines.Add(newLine);
-        p.Pos = nextPos;
-        p.Width = nextWidth;
+        p.Pos = newLine.EndPos;
+        p.Width = newLine.EndWidth;
         lastPoint = p;
     }
 
     public void NextDirection(Vector3 direction, float length, LineState state, float nextWidth = -1) {
+        length += properties.LineLengthVariance.GetSeededFloat();
         if (length <= 0) {
             throw new Exception("Length was 0 or negative");
         }
