@@ -3,23 +3,25 @@ using UnityEngine;
 
 public struct StringCommand {
     public string Command;
-    public string ParamString;
+    public CommandType Type;
+
+    public enum CommandType {
+        Command,
+        CommandParameter
+    }
 
     public override string ToString() {
-        string parameters = "";
-
-        if (ParamString.Length > 0) {
-            parameters = "(" + ParamString + ")";
+        if (Type == CommandType.Command) {
+            if (Command.Length > 1) {
+                return "{" + Command + "}";
+            } else {
+                return Command;
+            }
         }
-
-        if (Command.Length > 1) {
-            return "{" + Command + parameters + "}";
-        } else {
-            return Command + parameters;
-        }
+        return "[" + Command + "]";
     }
     public string[] GetParameters() {
-        string[] split = ParamString.Split(',');
+        string[] split = Command.Split(',');
         if (split.Length == 1 && split[0].Length == 0) {
             return new string[0];
         }

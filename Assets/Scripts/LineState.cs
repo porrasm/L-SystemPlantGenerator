@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
+using UnityEditor;
 using UnityEngine;
 
 [Serializable]
@@ -12,12 +14,12 @@ public class LineState {
     public float Width = 0.05f;
     public float Length = 0.25f;
     public Color Color = Color.white;
-    // angle ??
     #endregion
 
     public LineState Copy() {
-
         LineState copy = new LineState();
+
+        copy.Angle = Angle;
         copy.Orientation = Orientation;
         copy.Width = Width;
         copy.Length = Length;
@@ -26,11 +28,31 @@ public class LineState {
         return copy;
     }
 
+    #region parameters
     public void ExecuteParameterCommands(StringCommand command) {
         foreach (string param in command.GetParameters()) {
             ExecuteParameterCommand(param);
         }
     }
-    private void ExecuteParameterCommand(string command) {
+    private void ExecuteParameterCommand(string uncleanCommand) {
+        string command = Regex.Replace(uncleanCommand, @"\s+", "");
+
+        if (command.Contains("=")) {
+            string[] split = command.Split('=');
+            ParamCalculations(split[0], split[1]);
+        }
     }
+
+    // Unityeditor namespcae wont work in build, replace expressionevaluator
+    private void ParamCalculations(string definition, string exp) {
+
+        if (definition.Equals("angle")) {
+            string cleaned = exp.Replace(definition, Angle.ToString());
+            float value;
+            if (ExpressionEvaluator.Evaluate(cleaned, out value)) {
+                Angle = value;
+            }
+        }
+    }
+    #endregion
 }

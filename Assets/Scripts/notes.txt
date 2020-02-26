@@ -1,0 +1,1 @@
+idea: parameters are not tied to commands, params are listed inside [] or using param() or someting

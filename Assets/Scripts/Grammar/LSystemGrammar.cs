@@ -89,7 +89,7 @@ public class LSystemGrammar : ISetting {
         AdjustProbabilities();
 
         string iteration = axiom.ToLower();
-        
+
         for (int i = 0; i < iterations; i++) {
             int lineCount;
             string newIteration = Iterate(iteration, out lineCount);
@@ -99,6 +99,8 @@ public class LSystemGrammar : ISetting {
                 Debug.LogWarning("Too many iterations: " + iterations + ". Succesfully performed " + i + " iterations.");
                 break;
             }
+
+            Debug.Log("Line count: " + lineCount);
             iteration = newIteration;
         }
 
@@ -124,18 +126,22 @@ public class LSystemGrammar : ISetting {
         lineCount = 0;
         foreach (StringCommand command in commands) {
 
-            CommandDefinition rule;
-            if (RuleByString(command.Command, out rule)) {
-                string ruleString;
-                int ruleLineCount;
-                rule.GetRule(out ruleString, out ruleLineCount);
+            if (command.Type == StringCommand.CommandType.Command) {
+                CommandDefinition rule;
+                if (RuleByString(command.Command, out rule)) {
+                    string ruleString;
+                    int ruleLineCount;
+                    rule.GetRule(out ruleString, out ruleLineCount);
 
-                newIteration.Append(ruleString);
-                lineCount += ruleLineCount;
-            } else {
-                if (command.Command.Equals("f")) {
-                    lineCount++;
+                    newIteration.Append(ruleString);
+                    lineCount += ruleLineCount;
+                } else {
+                    if (command.Command.Equals("f")) {
+                        lineCount++;
+                    }
+                    newIteration.Append(command);
                 }
+            } else {
                 newIteration.Append(command);
             }
         }
@@ -151,10 +157,14 @@ public class LSystemGrammar : ISetting {
 
         foreach (StringCommand command in commands) {
 
-            CommandDefinition r;
-            if (RuleByString(command.Command, out r)) {
-                if (r.Type == CommandDefinition.CommandType.Alias) {
-                    newIteration.Append(r.Alias);
+            if (command.Type == StringCommand.CommandType.Command) {
+                CommandDefinition r;
+                if (RuleByString(command.Command, out r)) {
+                    if (r.Type == CommandDefinition.CommandType.Alias) {
+                        newIteration.Append(r.Alias);
+                    } else {
+                        newIteration.Append(command);
+                    }
                 } else {
                     newIteration.Append(command);
                 }

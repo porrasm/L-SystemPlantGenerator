@@ -67,6 +67,7 @@ public class PlantProperties : ISetting {
 
     public LineState ToLineState() {
         LineState state = new LineState();
+        state.Angle = DefaultAngle;
         state.Orientation = startingOrientation + startOrientationVariance.GetSeededFloat();
         state.Width = startingLineWidth;
         state.Length = startingLineLength;

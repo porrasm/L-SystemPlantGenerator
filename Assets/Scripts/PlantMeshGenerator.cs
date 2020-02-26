@@ -82,22 +82,26 @@ public class PlantMeshGenerator : MonoBehaviour {
 
         // Handle state parameters
 
-        node.State.ExecuteParameterCommands(s);
-        
-        if (s.Command.Equals("f")) {
-            node = node.Append();
-        }
-        if (s.Command.Equals("+")) {
-            node.State.Orientation += Settings.Properties.DefaultAngle;
-        }
-        if (s.Command.Equals("-")) {
-            node.State.Orientation -= Settings.Properties.DefaultAngle;
-        }
-        if (s.Command.Equals("[")) {
-            node = node.AddChild();
-        }
-        if (s.Command.Equals("]")) {
-            node = node.Parent;
+        if (s.Type == StringCommand.CommandType.Command) {
+            if (s.Command.Equals("f")) {
+                node = node.Append();
+            }
+            if (s.Command.Equals("+")) {
+                node.State.Orientation += node.State.Angle + Settings.Properties.AngleVariance.GetSeededFloat();
+            }
+            if (s.Command.Equals("-")) {
+                node.State.Orientation -= node.State.Angle + Settings.Properties.AngleVariance.GetSeededFloat();
+            }
+            if (s.Command.Equals("(")) {
+                node = node.AddChild();
+            }
+            if (s.Command.Equals(")")) {
+                node = node.Parent;
+            }
+        } else if (s.Type == StringCommand.CommandType.CommandParameter) {
+#if UNITY_EDITOR
+            node.State.ExecuteParameterCommands(s);
+#endif
         }
     }
 
@@ -105,7 +109,7 @@ public class PlantMeshGenerator : MonoBehaviour {
         while (node != null) {
 
             if (!node.IsBranchRoot) {
-                creator.NextDirection(node.GetOrientationDirection(Settings.Properties.AngleVariance.GetSeededFloat()), node.State.Length, node.State);
+                creator.NextDirection(node.GetOrientationDirection(), node.State.Length, node.State);
             }
 
             foreach (LBranch child in node.Branches) {
