@@ -7,6 +7,7 @@ using UnityEngine;
 public class LineState {
 
     #region fields
+    public float Angle = 0;
     public float Orientation = 0;
     public float Width = 0.05f;
     public float Length = 0.25f;
@@ -15,11 +16,21 @@ public class LineState {
     #endregion
 
     public LineState Copy() {
+
         LineState copy = new LineState();
         copy.Orientation = Orientation;
         copy.Width = Width;
         copy.Length = Length;
         copy.Color = Color;
+
         return copy;
+    }
+
+    public void ExecuteParameterCommands(StringCommand command) {
+        foreach (string param in command.GetParameters()) {
+            ExecuteParameterCommand(param);
+        }
+    }
+    private void ExecuteParameterCommand(string command) {
     }
 }

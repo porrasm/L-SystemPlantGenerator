@@ -4,40 +4,41 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [Serializable]
-public class CharacterDefinition : ISetting {
+public class CommandDefinition : ISetting {
 
     #region fields
     [SerializeField]
-    private char character;
+    private string command;
 
     [SerializeField]
     private List<ProbabilityRule> rules;
 
     [SerializeField]
-    private CharacterType type;
+    private CommandType type;
 
     [SerializeField]
     private string alias;
 
-    public char Character { get => character; set => character = value; }
+    public string Command { get => command; set => command = value; }
     public List<ProbabilityRule> Rules { get => rules; set => rules = value; }
-    public CharacterType Type { get => type; set => type = value; }
+    public CommandType Type { get => type; set => type = value; }
     public string Alias { get => alias; set => alias = value; }
 
-    public enum CharacterType {
+    public enum CommandType {
         Variable,
         Alias
     }
     #endregion
 
-    public CharacterDefinition() {
+    public CommandDefinition() {
         rules = new List<ProbabilityRule>();
+        command = "";
     }
 
     public ProbabilityRule DefaultRule {
         get {
             ProbabilityRule rule = new ProbabilityRule();
-            rule.Rule = "" + character;
+            rule.Rule = command;
             return rule;
         }
     }
@@ -92,7 +93,7 @@ public class CharacterDefinition : ISetting {
         rule = rules[0].Rule;
     }
     public bool TransformAlias(out string rule, out int lineCount) {
-        if (type == CharacterType.Alias) {
+        if (type == CommandType.Alias) {
             rule = Alias;
             lineCount = LSystemGrammar.LineCount(Alias);
             return true;
@@ -111,7 +112,7 @@ public class CharacterDefinition : ISetting {
     }
 
     public void Validate() {
-        character = Char.ToLower(character);
+        command.ToLower();
         foreach (ProbabilityRule r in rules) {
             r.Rule = r.Rule.ToLower();
         }

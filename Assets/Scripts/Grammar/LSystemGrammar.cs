@@ -14,15 +14,15 @@ public class LSystemGrammar : ISetting {
     private HashSet<char> reservedCharacters;
 
     [SerializeField]
-    private List<CharacterDefinition> characterDefinitions;
+    private List<CommandDefinition> characterDefinitions;
 
-    public List<CharacterDefinition> CharacterDefinitions { get => characterDefinitions; }
+    public List<CommandDefinition> CharacterDefinitions { get => characterDefinitions; }
 
-    private Dictionary<char, CharacterDefinition> characters;
+    private Dictionary<string, CommandDefinition> commands;
     #endregion
 
     public LSystemGrammar() {
-        characterDefinitions = new List<CharacterDefinition>();
+        characterDefinitions = new List<CommandDefinition>();
         ReserveCharacters();
     }
     private void ReserveCharacters() {
@@ -41,26 +41,34 @@ public class LSystemGrammar : ISetting {
         ValidateVariables();
     }
     private void ValidateVariables() {
-        HashSet<char> used = new HashSet<char>();
-        HashSet<char> aliases = new HashSet<char>();
+        HashSet<string> used = new HashSet<string>();
+        HashSet<string> aliases = new HashSet<string>();
 
-        foreach (CharacterDefinition r in characterDefinitions) {
-            if (!used.Add(r.Character)) {
-                Debug.LogError("Rule character was used multiple times");
+        foreach (CommandDefinition r in characterDefinitions) {
+            if (r.Command == null || r.Command.Length == 0) {
+                Debug.LogWarning("Command was empty");
+            }
+            if (!used.Add(r.Command)) {
+                Debug.LogError("Command was used multiple times: " + r.Command);
             }
             r.Validate();
 
-            if (r.Type == CharacterDefinition.CharacterType.Alias) {
-                if (!aliases.Add(r.Character)) {
-                    throw new Exception("Alias character cannot be " + r.Character);
+            if (r.Type == CommandDefinition.CommandType.Alias) {
+                if (!aliases.Add(r.Command)) {
+                    throw new Exception("Alias character cannot be " + r.Command);
                 }
             }
         }
-        foreach (CharacterDefinition r in characterDefinitions) {
-            if (r.Type == CharacterDefinition.CharacterType.Alias) {
-                foreach (char a in aliases) {
+
+        // Must rethink after using multichar strings warpped in {} as commands
+        foreach (CommandDefinition r in characterDefinitions) {
+            if (r.Type == CommandDefinition.CommandType.Alias) {
+                foreach (string a in aliases) {
                     if (r.Alias.Contains(a)) {
                         throw new Exception("Alias cannot contain other aliases. Alias '" + r.Alias + "' contained '" + a + "'");
+                    }
+                    if (r.Alias.Contains("{" + a + "}")) {
+                        throw new Exception("Alias cannot contain other aliases. Alias '" + r.Alias + "' contained '{" + a + "}'");
                     }
                 }
             }
@@ -85,13 +93,13 @@ public class LSystemGrammar : ISetting {
         for (int i = 0; i < iterations; i++) {
             int lineCount;
             string newIteration = Iterate(iteration, out lineCount);
+
             newIteration = TransformAliases(newIteration);
             if (lineCount > LINE_LIMIT) {
                 Debug.LogWarning("Too many iterations: " + iterations + ". Succesfully performed " + i + " iterations.");
                 break;
             }
             iteration = newIteration;
-            Debug.Log("Line count: " + lineCount);
         }
 
         iteration = TransformAliases(iteration);
@@ -99,21 +107,25 @@ public class LSystemGrammar : ISetting {
         return iteration;
     }
     private void PrepareDictionary() {
-        characters = new Dictionary<char, CharacterDefinition>();
+        commands = new Dictionary<string, CommandDefinition>();
 
-        foreach (CharacterDefinition c in CharacterDefinitions) {
-            characters.Add(c.Character, c);
+        foreach (CommandDefinition c in CharacterDefinitions) {
+            commands.Add(c.Command, c);
         }
     }
 
     private string Iterate(string iteration, out int lineCount) {
         StringBuilder newIteration = new StringBuilder();
 
-        lineCount = 0;
-        foreach (char c in iteration) {
-            CharacterDefinition rule;
-            if (RuleByCharacter(c, out rule)) {
+        List<StringCommand> commands = CommandTools.GetCommands(iteration);
 
+        // state params are not saved after iterations, fix
+
+        lineCount = 0;
+        foreach (StringCommand command in commands) {
+
+            CommandDefinition rule;
+            if (RuleByString(command.Command, out rule)) {
                 string ruleString;
                 int ruleLineCount;
                 rule.GetRule(out ruleString, out ruleLineCount);
@@ -121,45 +133,52 @@ public class LSystemGrammar : ISetting {
                 newIteration.Append(ruleString);
                 lineCount += ruleLineCount;
             } else {
-                if (c == 'f') {
+                if (command.Command.Equals("f")) {
                     lineCount++;
                 }
-                newIteration.Append(c);
+                newIteration.Append(command);
             }
         }
 
         return newIteration.ToString();
     }
+
     private string TransformAliases(string iteration) {
         StringBuilder newIteration = new StringBuilder();
 
-        foreach (char c in iteration) {
-            CharacterDefinition r;
-            if (RuleByCharacter(c, out r)) {
-                if (r.Type == CharacterDefinition.CharacterType.Alias) {
+        Debug.Log("Transform aliases: " + iteration);
+        List<StringCommand> commands = CommandTools.GetCommands(iteration);
+
+        foreach (StringCommand command in commands) {
+
+            CommandDefinition r;
+            if (RuleByString(command.Command, out r)) {
+                if (r.Type == CommandDefinition.CommandType.Alias) {
                     newIteration.Append(r.Alias);
                 } else {
-                    newIteration.Append(c);
+                    newIteration.Append(command);
                 }
             } else {
-                newIteration.Append(c);
+                newIteration.Append(command);
             }
         }
 
+        Debug.Log("Transformed to: " + newIteration.ToString());
         return newIteration.ToString();
     }
 
-    private bool RuleByCharacter(char c, out CharacterDefinition rule) {
-        if (characters.ContainsKey(c)) {
-            rule = characters[c];
+    private bool RuleByString(string s, out CommandDefinition rule) {
+        if (commands.ContainsKey(s)) {
+            rule = commands[s];
             return true;
         }
+
         rule = null;
         return false;
     }
 
     private void AdjustProbabilities() {
-        foreach (CharacterDefinition rule in characterDefinitions) {
+        foreach (CommandDefinition rule in characterDefinitions) {
             rule.AdjustProbabilities();
         }
     }

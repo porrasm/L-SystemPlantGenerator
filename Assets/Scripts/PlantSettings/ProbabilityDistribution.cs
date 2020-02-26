@@ -43,6 +43,11 @@ public class ProbabilityDistribution {
     }
 
     public float GetSeededFloat() {
+
+        if (cumulativeDistribution == null) {
+            Calculate();
+        }
+
         double randomCumulativePoint = RNG.SeededFloat * cumulativeAmount;
 
         double foundValue = 0;

@@ -253,7 +253,7 @@ public static class InspectorGUI {
             GUILayout.EndHorizontal();
             EndArea();
             if (max > min) {
-                if(dist.SetRange(min, max)) {
+                if (dist.SetRange(min, max)) {
                     dist.ResetCurve();
                 }
             }

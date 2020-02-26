@@ -71,24 +71,32 @@ public class PlantMeshGenerator : MonoBehaviour {
         tree = new LBranch(Settings.Properties.ToLineState());
         node = tree;
 
-        foreach (char c in treeString) {
-            AnalyzeCommand(c);
+        List<StringCommand> commands = CommandTools.GetCommands(treeString);
+
+        foreach (StringCommand command in commands) {
+            ExecuteCommand(command);
         }
     }
-    private void AnalyzeCommand(char c) {
-        if (char.ToLower(c) == 'f') {
+
+    private void ExecuteCommand(StringCommand s) {
+
+        // Handle state parameters
+
+        node.State.ExecuteParameterCommands(s);
+        
+        if (s.Command.Equals("f")) {
             node = node.Append();
         }
-        if (c == '+') {
+        if (s.Command.Equals("+")) {
             node.State.Orientation += Settings.Properties.DefaultAngle;
         }
-        if (c == '-') {
+        if (s.Command.Equals("-")) {
             node.State.Orientation -= Settings.Properties.DefaultAngle;
         }
-        if (c == '(') {
+        if (s.Command.Equals("[")) {
             node = node.AddChild();
         }
-        if (c == ')') {
+        if (s.Command.Equals("]")) {
             node = node.Parent;
         }
     }

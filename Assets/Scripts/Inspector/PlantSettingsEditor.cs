@@ -172,7 +172,7 @@ public class PlantSettingsEditor : Editor {
             GrammarRules();
             GUILayout.BeginHorizontal();
             if (GUILayout.Button("Add character definition")) {
-                Settings.Grammar.CharacterDefinitions.Add(new CharacterDefinition());
+                Settings.Grammar.CharacterDefinitions.Add(new CommandDefinition());
             }
             if (GUILayout.Button("Clear definitions")) {
                 Settings.Grammar.CharacterDefinitions.Clear();
@@ -189,29 +189,26 @@ public class PlantSettingsEditor : Editor {
             GUILayout.Space(10);
         }
     }
-    private void RuleSetting(CharacterDefinition rule, int index) {
+    private void RuleSetting(CommandDefinition rule, int index) {
         InspectorGUI.CreateBox();
 
         GUILayout.BeginHorizontal();
-        string charString = InspectorGUI.TextField("Character", "" + rule.Character);
-        rule.Type = (CharacterDefinition.CharacterType)EditorGUILayout.EnumPopup(rule.Type);
+        string charString = InspectorGUI.TextField("Command", "" + rule.Command);
+
+        rule.Type = (CommandDefinition.CommandType)EditorGUILayout.EnumPopup(rule.Type);
         GUILayout.EndHorizontal();
 
-        if (charString.Length == 0) {
-            charString = "" + default(char);
-        }
+        rule.Command = charString;
 
-        rule.Character = char.ToLower(charString[charString.Length - 1]);
-
-        if (rule.Type == CharacterDefinition.CharacterType.Alias) {
+        if (rule.Type == CommandDefinition.CommandType.Alias) {
             rule.Alias = InspectorGUI.TextArea("", rule.Alias, int.MaxValue, true);
             GUILayout.Space(10);
             if (GUILayout.Button("Remove character definition")) {
                 Settings.Grammar.CharacterDefinitions.RemoveAt(index);
             }
-        } else if (rule.Type == CharacterDefinition.CharacterType.Variable) {
+        } else if (rule.Type == CommandDefinition.CommandType.Variable) {
 
-            if (rule.Character == default(char)) {
+            if (rule.Command.Length == 0) {
                 if (GUILayout.Button("Remove character definition")) {
                     Settings.Grammar.CharacterDefinitions.RemoveAt(index);
                 }
@@ -247,7 +244,7 @@ public class PlantSettingsEditor : Editor {
 
         GUILayout.EndVertical();
     }
-    private void RuleRow(CharacterDefinition charDef, int index) {
+    private void RuleRow(CommandDefinition charDef, int index) {
         GUILayout.BeginHorizontal();
         //if (GUILayout.Button("Remove")) {
         //    charDef.Rules.RemoveAt(index);
