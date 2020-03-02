@@ -110,10 +110,10 @@ public class PlantSettingsEditor : Editor {
         prop.ScaleToWidth = InspectorGUI.BoolField("Scale to width", prop.ScaleToWidth);
 
         if (prop.ScaleToLength) {
-            prop.TargetLength = InspectorGUI.FloatField("Target length", prop.TargetLength, 0, float.MaxValue);
+            InspectorGUI.RangedFloatEditor(this, "Target length", prop.TargetLength, 0, float.MaxValue);
         }
         if (prop.ScaleToWidth) {
-            prop.TargetWidth = InspectorGUI.FloatField("Target width", prop.TargetWidth, 0, float.MaxValue);
+            InspectorGUI.RangedFloatEditor(this, "Target width", prop.TargetWidth, 0, float.MaxValue);
         }
 
         // General
@@ -134,7 +134,6 @@ public class PlantSettingsEditor : Editor {
             InspectorGUI.IndependentDistributinEditor("Orientation", this, prop.StartOrientationVariance);
             InspectorGUI.IndependentDistributinEditor("Line length", this, prop.LineLengthVariance);
             InspectorGUI.IndependentDistributinEditor("Line width", this, prop.LineWidthVariance);
-            InspectorGUI.IndependentDistributinEditor("Plant length", this, prop.PlantLengthVariance);
             InspectorGUI.EndFoldedArea();
         }
 

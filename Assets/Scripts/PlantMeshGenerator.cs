@@ -22,9 +22,13 @@ public class PlantMeshGenerator : MonoBehaviour {
     [SerializeField]
     private int generateTimeLimit = 1000;
 
+    [SerializeField]
+    private MeshContainer plantMesh;
+
     public PlantSettings Settings { get => settings; set => settings = value; }
     public bool GenerateOnSettingChange { get => generateOnSettingChange; set => generateOnSettingChange = value; }
     public int GenerateTimeLimit { get => generateTimeLimit; set => generateTimeLimit = value; }
+    public MeshContainer PlantMesh { get => plantMesh; }
     #endregion
 
     private void OnValidate() {
@@ -60,8 +64,42 @@ public class PlantMeshGenerator : MonoBehaviour {
         BuildTreeMesh(tree);
         Debug.Log("Tree build " + Timer.Passed(time));
         Debug.Log("Tree count: " + tree.Count);
-        GetComponent<MeshFilter>().mesh = creator.GenerateMesh();
+        plantMesh = creator.GenerateMesh();
+        GetComponent<MeshFilter>().mesh = plantMesh.Mesh;
         Debug.Log("Mesh built " + Timer.Passed(time));
+        ResizePlant();
+    }
+    private void ResizePlant() {
+
+        if (!Settings.Properties.ScaleToWidth && !Settings.Properties.ScaleToLength) {
+            transform.localScale = Vector3.one;
+            return;
+        }
+
+        float width = PlantMesh.Bounds.extents.x * 2;
+        float height = PlantMesh.Bounds.extents.y * 2;
+
+        float multiplier = float.MaxValue;
+
+        if (Settings.Properties.ScaleToWidth) {
+            
+            float wMult = Settings.Properties.TargetWidth.Value / width;
+            if (wMult < multiplier) {
+                multiplier = wMult;
+            }
+        }
+        if (Settings.Properties.ScaleToLength) {
+            Debug.Log("Settings.Properties.TargetLength.Value: " + Settings.Properties.TargetLength.Value);
+            float hMult = Settings.Properties.TargetLength.Value / height;
+            if (hMult < multiplier) {
+                multiplier = hMult;
+            }
+        }
+
+        Debug.Log("Bounds: " + plantMesh.Bounds);
+        Debug.Log("Mult: " + multiplier);
+
+        transform.localScale = Vector3.one * multiplier;
     }
 
     private void AnalyzeRule(string treeString) {

@@ -77,7 +77,14 @@ public class LineMeshCreator2D {
         }
     }
 
-    public Mesh GenerateMesh() {
+    public MeshContainer GenerateMesh() {
+
+        MeshContainer cont = new MeshContainer();
+
+        Bounds bounds = new Bounds();
+
+        float xMin = 0, xMax = 0;
+        float yMin = 0, yMax = 0;
 
         List<Vector3> vertices = new List<Vector3>();
         List<Color> colors = new List<Color>();
@@ -92,6 +99,19 @@ public class LineMeshCreator2D {
             foreach (Vector3 ver in v) {
                 vertices.Add(ver);
                 colors.Add(lines[i].State.Color);
+
+                if (ver.x > xMax) {
+                    xMax = ver.x;
+                }
+                if (ver.x < xMin) {
+                    xMin = ver.x;
+                }
+                if (ver.y > yMax) {
+                    yMax = ver.y;
+                }
+                if (ver.y < yMin) {
+                    yMin = ver.y;
+                }
             }
 
             triangles.Add(vIndex);
@@ -123,7 +143,7 @@ public class LineMeshCreator2D {
         if (vertices.Count > 65535) {
             Debug.Log("line count: " + lines.Count);
             Debug.Log("Too large mesh: " + vertices.Count);
-            return null;
+            return default(MeshContainer);
         }
 
         Debug.Log("Vertex count: " + vertices.Count);
@@ -139,7 +159,24 @@ public class LineMeshCreator2D {
         mesh.RecalculateTangents();
         mesh.RecalculateNormals();
 
-        return mesh;
+        cont.Mesh = mesh;
+        cont.Bounds = BoundsFromMaxPoints(xMin, xMax, yMin, yMax);
+
+        return cont;
+    }
+    private Bounds BoundsFromMaxPoints(float xMin, float xMax, float yMin, float yMax) {
+
+        float xExtent = (xMax - xMin) / 2;
+        float yExtent = (yMax - yMin) / 2;
+
+        float xCenter = xMin + xExtent;
+        float yCenter = yMin + yExtent;
+
+        Bounds bounds = new Bounds();
+        bounds.center = new Vector3(xCenter, yCenter);
+        bounds.extents = new Vector3(xExtent, yExtent);
+
+        return bounds;
     }
 
     private struct PointInfo {

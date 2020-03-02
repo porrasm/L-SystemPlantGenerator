@@ -15,9 +15,11 @@ public class RangedFloat : ISetting {
 
     public float TargetValue { get => targetValue; set => targetValue = value; }
     public ProbabilityDistributionEditor Distribution { get => distribution; }
+    public float MinValue { get => targetValue - distribution.Min; }
+    public float MaxValue { get => targetValue + distribution.Max; }
     #endregion
 
-    public RangedFloat(float value = 0, float min = 0, float max = 0) {
+    public RangedFloat(float value = 0, float min = 0, float max = 0, bool enabled = true) {
 
         targetValue = value;
 
@@ -26,6 +28,10 @@ public class RangedFloat : ISetting {
             distribution.Enabled = true;
         } else {
             distribution = new ProbabilityDistributionEditor();
+            distribution.Enabled = false;
+        }
+
+        if (!enabled) {
             distribution.Enabled = false;
         }
     }
