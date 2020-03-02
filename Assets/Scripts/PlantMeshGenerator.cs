@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 
-[RequireComponent(typeof(MeshFilter))]
-[RequireComponent(typeof(MeshRenderer))]
 public class PlantMeshGenerator : MonoBehaviour {
 
     #region fields
@@ -29,6 +27,8 @@ public class PlantMeshGenerator : MonoBehaviour {
     public bool GenerateOnSettingChange { get => generateOnSettingChange; set => generateOnSettingChange = value; }
     public int GenerateTimeLimit { get => generateTimeLimit; set => generateTimeLimit = value; }
     public MeshContainer PlantMesh { get => plantMesh; }
+
+    private string axiomTest = "f(+f)f(-f(+f)f(+f)f)f(-f)f(+f)f(-f(-f)f(-f)f)f(-f)f(+f)f(-f(-f)f(+f)f(-f(-f)f(-f)f)f(-f)f(-f)f(-f(-f)f(+f)f)f(-f)f(-f)f)f(-f)f(-f)f(-f(-f)f(-f)f)f(-f)f(+f)f(-f(+f)f(+f)f)f(-f)f(-f)f(+f(-f)f(-f(+f)f(+f)f)f(-f)f(+f)f(+f(-f)f(+f)f)f(-f)f(+f)f(-f(-f)f(+f)f(-f(+f)f(+f)f)f(+f)f(+f)f(+f(-f)f(+f)f)f(-f)f(-f)f)f(-f)f(-f)f(-f(-f)f(+f)f)f(-f)f(+f)f(-f(-f)f(+f)f)f(-f)f(-f)f(+f(-f)f(-f)f(+f(-f)f(+f)f)f(-f)f(+f)f(+f(-f)f(+f)f)f(-f)f(+f)f)f(-f)f(+f)f(-f(+f)f(+f)f)f(-f)f(+f(-f)f(-f)f)f(-f)f(+f)f)f(-f)f(+f)f(+f(-f)f)f(+f)f(+f)f(+f(+f)f(+f)f)f(-f)f(-f)f(-f(-f)f(-f)(f(-f(-f)f(+f)f)f(-f)f(+f)f(-f(-f)f)f(-f)f(+f)f)f(-f)f(-f)f(+f(-f)f(+f)f)f(+f)f(-f)f(+f(-f)f(-f)f)f(-f)f(+f(+f)f(+f)f(-f(-f)f(-f)f)f(-f)f(+f)f(+f(-f)f(-f)f)f(-f)f(+f)f)f(+f)f(-f(+f)f(+f)f)f(+f)f(+f)f(+f(+f)f(+f)f)f(-f)f(-f)f(+f(-f)f(-f)f(-f(-f)f(+f)f)f(+f)f(+f)f(-f(-f)f)f(-f)f(+f)f(-f(-f)f(-f)f(-f(+f)f(+f)f)f(+f)f(-f)f(+f(+f)f(+f)f)f(-f)f(-f)f)f(+f)f(+f)f(+f(-f)f(+f)f)f(-f)f(+f)f(+f(+f)f(+f)f)f(-f)f(-f(-f)f(-f)f(+f(-f)f(+f)f)f(+f)f(+f)f(+f(+f)f(+f)f)f(-f)f(-f)f)f(-f)f(+f)f(-f(-f)f(-f)f)f(-f)f(+f)f)f(+f)f(+f)f(-f(-f)f(-f)f)f(-f)(f(-f)f(+f(-f)f)f(-f)f(+f)f(-f(-f)f(-f)f(-f(-f)f(-f)f)f(-f)f(-f)f(-f(-f)f(+f)f)f(-f)f(-f)f)f(+f)f(+f)f(-f(-f)f(+f)f)f(+f))f(+f)f(-f(-f)f(-f)f)f(-f)f(-f(-f)f(+f)f(-f(-f)f(+f)f)f(+f)f(+f)f(+f(+f)f(+f)f)f(-f)f(-f)f)f(-f)f(+f)f(-f(-f)f(-f)f)f(+f)f(+f)f(-f(-f)f(+f)f)f(+f)f(+f)f)";
     #endregion
 
     private void OnValidate() {
@@ -45,7 +45,22 @@ public class PlantMeshGenerator : MonoBehaviour {
         }
     }
 
+    private Transform meshes;
+    private Transform Meshes {
+        get {
+            if (meshes == null) {
+                meshes = transform.Find("Meshes");
+            }
+            return meshes;
+        }
+    }
+    private MeshFilter GetMesh(int index) {
+        return Meshes.GetChild(index).GetComponent<MeshFilter>();
+    }
+
     public void GeneratePlant() {
+
+        
 
         if (Settings.UseSeed) {
             RNG.SetSeed(Settings.Seed);
@@ -62,17 +77,39 @@ public class PlantMeshGenerator : MonoBehaviour {
         Debug.Log("Analyzed " + Timer.Passed(time));
         creator = new LineMeshCreator2D(Vector3.zero, Settings.Properties.StartingLineWidth, Settings.Properties);
         BuildTreeMesh(tree);
+
+        PrepareTransform();
         Debug.Log("Tree build " + Timer.Passed(time));
         Debug.Log("Tree count: " + tree.Count);
         plantMesh = creator.GenerateMesh();
-        GetComponent<MeshFilter>().mesh = plantMesh.Mesh;
+        GetMesh(0).mesh = plantMesh.Mesh;
         Debug.Log("Mesh built " + Timer.Passed(time));
+
         ResizePlant();
     }
+
+    private void PrepareTransform() {
+        if (Meshes == null) {
+            AddMeshObject();
+        }
+    }
+
+    private void AddMeshObject() {
+        GameObject meshes = new GameObject();
+        meshes.name = "Meshes";
+        meshes.transform.SetParent(transform);
+
+        GameObject mesh = new GameObject();
+        mesh.name = "Mesh 0";
+        mesh.AddComponent<MeshFilter>();
+        mesh.AddComponent<MeshRenderer>();
+        mesh.transform.SetParent(meshes.transform);
+    }
+
     private void ResizePlant() {
 
         if (!Settings.Properties.ScaleToWidth && !Settings.Properties.ScaleToLength) {
-            transform.localScale = Vector3.one;
+            Meshes.localScale = Vector3.one;
             return;
         }
 
@@ -82,7 +119,7 @@ public class PlantMeshGenerator : MonoBehaviour {
         float multiplier = float.MaxValue;
 
         if (Settings.Properties.ScaleToWidth) {
-            
+
             float wMult = Settings.Properties.TargetWidth.Value / width;
             if (wMult < multiplier) {
                 multiplier = wMult;
@@ -99,7 +136,7 @@ public class PlantMeshGenerator : MonoBehaviour {
         Debug.Log("Bounds: " + plantMesh.Bounds);
         Debug.Log("Mult: " + multiplier);
 
-        transform.localScale = Vector3.one * multiplier;
+        Meshes.localScale = Vector3.one * multiplier;
     }
 
     private void AnalyzeRule(string treeString) {

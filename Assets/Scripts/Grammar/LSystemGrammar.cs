@@ -194,6 +194,14 @@ public class LSystemGrammar : ISetting {
     }
     #endregion
 
+    #region plant parsing
+    public void ParseFromTree(string tree, int targetIterations) {
+        List<string> rules = new List<string>();
+
+        throw new NotImplementedException("Possible feature, difficult to implement");
+    }
+    #endregion
+
     public static int LineCount(string rule) {
         int count = 0;
         foreach (char c in rule) {
