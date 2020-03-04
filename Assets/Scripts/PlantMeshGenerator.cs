@@ -8,6 +8,7 @@ public class PlantMeshGenerator : MonoBehaviour {
     #region fields
     private LineMeshCreator2D creator;
 
+    [SerializeField]
     private LBranch tree;
     private LBranch node;
 
@@ -23,6 +24,7 @@ public class PlantMeshGenerator : MonoBehaviour {
     [SerializeField]
     private MeshContainer plantMesh;
 
+    public LBranch Tree { get => tree; }
     public PlantSettings Settings { get => settings; set => settings = value; }
     public bool GenerateOnSettingChange { get => generateOnSettingChange; set => generateOnSettingChange = value; }
     public int GenerateTimeLimit { get => generateTimeLimit; set => generateTimeLimit = value; }
@@ -46,7 +48,7 @@ public class PlantMeshGenerator : MonoBehaviour {
     }
 
     private Transform meshes;
-    private Transform Meshes {
+    public Transform Meshes {
         get {
             if (meshes == null) {
                 meshes = transform.Find("Meshes");
@@ -58,24 +60,32 @@ public class PlantMeshGenerator : MonoBehaviour {
         return Meshes.GetChild(index).GetComponent<MeshFilter>();
     }
 
+    long time;
     public void GeneratePlant() {
+        RegenerateTree();
+        RebuildMeshes();
 
-        
-
+        Debug.Log("First o: " + tree.State.Orientation);
+        Debug.Log("second o: " + tree.Next.State.Orientation);
+        Debug.Log("third o: " + tree.Next.Next.State.Orientation);
+    }
+    public void RegenerateTree() {
         if (Settings.UseSeed) {
             RNG.SetSeed(Settings.Seed);
         } else {
             RNG.SetSeed(RNG.Integer);
         }
 
-        long time = Timer.Time;
+        time = Timer.Time;
 
         string treeString = Settings.Grammar.PerformIterations(Settings.Axiom, Settings.Iterations);
         Debug.Log("Tree string: " + treeString);
-        AnalyzeRule(treeString);
+        BuildTree(treeString);
 
         Debug.Log("Analyzed " + Timer.Passed(time));
-        creator = new LineMeshCreator2D(Vector3.zero, Settings.Properties.StartingLineWidth, Settings.Properties);
+        creator = new LineMeshCreator2D(Vector3.zero, Settings.Properties.StartingLineWidth);
+    }
+    public void RebuildMeshes() {
         BuildTreeMesh(tree);
 
         PrepareTransform();
@@ -92,6 +102,9 @@ public class PlantMeshGenerator : MonoBehaviour {
         if (Meshes == null) {
             AddMeshObject();
         }
+        Meshes.localScale = Vector3.one;
+        Meshes.localPosition = Vector3.zero;
+        Meshes.localEulerAngles = Vector3.zero;
     }
 
     private void AddMeshObject() {
@@ -137,9 +150,11 @@ public class PlantMeshGenerator : MonoBehaviour {
         Debug.Log("Mult: " + multiplier);
 
         Meshes.localScale = Vector3.one * multiplier;
+
+        plantMesh.ScaledBounds = new Bounds(plantMesh.Bounds.center, plantMesh.Bounds.size * multiplier);
     }
 
-    private void AnalyzeRule(string treeString) {
+    private void BuildTree(string treeString) {
 
         Debug.Log("Result: " + treeString.Length);
 
@@ -156,16 +171,18 @@ public class PlantMeshGenerator : MonoBehaviour {
     private void ExecuteCommand(StringCommand s) {
 
         // Handle state parameters
-
         if (s.Type == StringCommand.CommandType.Command) {
             if (s.Command.Equals("f")) {
+                AddVariationToCurrent();
                 node = node.Append();
             }
             if (s.Command.Equals("+")) {
-                node.State.Orientation += node.State.Angle + Settings.Properties.AngleVariance.GetSeededFloat();
+                node.State.Orientation += node.State.Angle;
+                AddVariationToCurrent();
             }
             if (s.Command.Equals("-")) {
-                node.State.Orientation -= node.State.Angle + Settings.Properties.AngleVariance.GetSeededFloat();
+                node.State.Orientation -= node.State.Angle;
+                AddVariationToCurrent();
             }
             if (s.Command.Equals("(")) {
                 node = node.AddChild();
@@ -179,12 +196,17 @@ public class PlantMeshGenerator : MonoBehaviour {
 #endif
         }
     }
+    private void AddVariationToCurrent() {
+        node.State.Width += Settings.Properties.LineWidthVariance.GetSeededFloat();
+        node.State.Orientation += Settings.Properties.AngleVariance.GetSeededFloat();
+        node.State.CurrentLength = node.State.NextLength + Settings.Properties.LineLengthVariance.GetSeededFloat();
+    }
 
     public void BuildTreeMesh(LBranch node) {
         while (node != null) {
 
             if (!node.IsBranchRoot) {
-                creator.NextDirection(node.GetOrientationDirection(), node.State.Length, node.State);
+                creator.NextDirection(node.Prev.GetOrientationDirection(), node.State);
             }
 
             foreach (LBranch child in node.Branches) {

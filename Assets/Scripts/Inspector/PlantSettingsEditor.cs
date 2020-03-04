@@ -8,7 +8,7 @@ using UnityEngine;
 public class PlantSettingsEditor : Editor {
 
     #region fields
-    private PlantMeshGenerator generator;
+    public PlantMeshGenerator generator;
 
     private bool grammarFold;
 
@@ -18,7 +18,18 @@ public class PlantSettingsEditor : Editor {
 
     private long lastGenerateTime;
     private static int cycleIndex;
+
+    private CustomPlantEditor customPlant;
     #endregion
+
+    public CustomPlantEditor CustomPlant {
+        get {
+            if (customPlant == null) {
+                customPlant = new CustomPlantEditor(this);
+            }
+            return customPlant;
+        }
+    }
 
     public override void OnInspectorGUI() {
         //base.OnInspectorGUI();
@@ -34,6 +45,10 @@ public class PlantSettingsEditor : Editor {
         if (Generator.GenerateOnSettingChange) {
             StartGenerationCycle();
         }
+    }
+
+    private void OnSceneGUI() {
+        CustomPlant.Editor();
     }
 
     private async void StartGenerationCycle() {
@@ -148,7 +163,7 @@ public class PlantSettingsEditor : Editor {
 
         state.Orientation = InspectorGUI.FloatSlider("Orientation", state.Orientation, 0, 360);
         state.Width = InspectorGUI.FloatField("Width", state.Width);
-        state.Length = InspectorGUI.FloatField("Length", state.Length);
+        state.NextLength = InspectorGUI.FloatField("Length", state.NextLength);
         state.Color = InspectorGUI.ColorField("Color", state.Color);
 
         InspectorGUI.EndArea();
@@ -312,7 +327,7 @@ public class PlantSettingsEditor : Editor {
     #endregion
 
 
-    private PlantMeshGenerator Generator {
+    public PlantMeshGenerator Generator {
         get {
             if (generator == null) {
                 generator = (PlantMeshGenerator)target;
@@ -320,7 +335,7 @@ public class PlantSettingsEditor : Editor {
             return generator;
         }
     }
-    private PlantSettings Settings {
+    public PlantSettings Settings {
         get {
             return Generator.Settings;
         }

@@ -10,16 +10,13 @@ public class LineMeshCreator2D {
     private List<VectorLine2D> lines;
 
     private Stack<PointInfo> branching;
-
-    private PlantProperties properties;
     #endregion
 
-    public LineMeshCreator2D(Vector3 startPos, float startWidth, PlantProperties properties) {
+    public LineMeshCreator2D(Vector3 startPos, float startWidth) {
         this.startPos = startPos;
         this.startWidth = startWidth;
         branching = new Stack<PointInfo>();
         lines = new List<VectorLine2D>();
-        this.properties = properties;
     }
 
     public void Branch() {
@@ -29,6 +26,18 @@ public class LineMeshCreator2D {
         lastPoint = branching.Pop();
     }
 
+    public void NextDirection(Vector3 direction, LineState state) {
+        if (state.CurrentLength <= 0) {
+            throw new Exception("Length was 0 or negative");
+        }
+        if (direction.normalized == Vector3.zero) {
+            throw new Exception("Invalid direction");
+        }
+
+        Vector3 nextPos = LastPoint.Pos + direction.normalized * state.CurrentLength;
+
+        NextPoint(nextPos, state, state.Width);
+    }
     private void NextPoint(Vector3 nextPos, LineState state, float nextWidth = -1) {
 
         PointInfo p = LastPoint;
@@ -41,27 +50,11 @@ public class LineMeshCreator2D {
             throw new System.Exception("New line length was 0");
         }
 
-        nextWidth += properties.LineWidthVariance.GetSeededFloat();
-
         VectorLine2D newLine = VectorLine2D.New(p.Pos, nextPos, state, p.Width, nextWidth);
         lines.Add(newLine);
         p.Pos = newLine.EndPos;
         p.Width = newLine.EndWidth;
         lastPoint = p;
-    }
-
-    public void NextDirection(Vector3 direction, float length, LineState state, float nextWidth = -1) {
-        length += properties.LineLengthVariance.GetSeededFloat();
-        if (length <= 0) {
-            throw new Exception("Length was 0 or negative");
-        }
-        if (direction.normalized == Vector3.zero) {
-            throw new Exception("Invalid direction");
-        }
-
-        Vector3 nextPos = LastPoint.Pos + direction.normalized * length;
-
-        NextPoint(nextPos, state, nextWidth);
     }
 
     private PointInfo lastPoint;
@@ -161,6 +154,7 @@ public class LineMeshCreator2D {
 
         cont.Mesh = mesh;
         cont.Bounds = BoundsFromMaxPoints(xMin, xMax, yMin, yMax);
+        cont.ScaledBounds = cont.Bounds;
 
         return cont;
     }

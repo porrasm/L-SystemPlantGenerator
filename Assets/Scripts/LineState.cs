@@ -12,7 +12,8 @@ public class LineState {
     public float Angle = 0;
     public float Orientation = 0;
     public float Width = 0.05f;
-    public float Length = 0.25f;
+    public float CurrentLength = 0;
+    public float NextLength = 0.25f;
     public Color Color = Color.white;
     #endregion
 
@@ -22,7 +23,8 @@ public class LineState {
         copy.Angle = Angle;
         copy.Orientation = Orientation;
         copy.Width = Width;
-        copy.Length = Length;
+        copy.CurrentLength = CurrentLength;
+        copy.NextLength = NextLength;
         copy.Color = Color;
 
         return copy;

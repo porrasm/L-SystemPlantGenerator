@@ -69,7 +69,7 @@ public class PlantProperties : ISetting {
         state.Angle = DefaultAngle;
         state.Orientation = startingOrientation + startOrientationVariance.GetSeededFloat();
         state.Width = startingLineWidth;
-        state.Length = startingLineLength;
+        state.NextLength = startingLineLength;
         state.Color = startingColor;
         return state;
     }
