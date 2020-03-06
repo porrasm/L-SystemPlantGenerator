@@ -13,7 +13,7 @@ namespace Tests {
             List<StringCommand> commands = CommandTools.GetCommands(tree);
 
             foreach (StringCommand c in commands) {
-                Debug.Log(c);
+                Logger.Print(c);
             }
 
             Assert.AreEqual(4, commands.Count);

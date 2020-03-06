@@ -9,10 +9,35 @@ public class CustomPlantEditor {
     private PlantSettingsEditor editor;
     Rect rect = new Rect(10, 10, 50, 50);
     private bool pressed;
+
+    private LBranchTools treeTools;
+
+    public CustomPlantCreator CustomPlant { get; private set; }
     #endregion
 
     public CustomPlantEditor(PlantSettingsEditor editor) {
         this.editor = editor;
+        CustomPlant = new CustomPlantCreator(editor.Generator);
+    }
+
+    private LBranchTools TreeTools {
+        get {
+            if (treeTools == null || !ReferenceEquals(treeTools.Tree, editor.Generator.Tree) || treeTools.Count != editor.Generator.Tree.Count) {
+                treeTools = new LBranchTools(editor.Generator.Tree);
+            }
+            return treeTools;
+        }
+    }
+
+    public void EditorGUI() {
+        InspectorGUI.CreateBox();
+        GUILayout.Label("Custom plant editor");
+        if (GUILayout.Button("Exit editor")) {
+            CustomPlant.Enabled = false;
+        }
+        if (GUILayout.Button("Finish")) {
+        }
+        InspectorGUI.EndArea();
     }
 
     public void Editor() {
@@ -39,30 +64,33 @@ public class CustomPlantEditor {
         //    pressed = !pressed;
         //}
 
-        Handles.color = Color.yellow;
-
-        Handles.Label(p.position, "ASDASDASD");
-
-        Handles.EndGUI();
+        Rect buttonArea = new Rect(0, 0, 15, 15);
 
         if (plantArea.Contains(Event.current.mousePosition) || true) {
 
             Vector3 pos;
 
             Vector3 mouseWorld = WorldPos(Event.current.mousePosition);
-            Debug.Log("Mouse world: " + mouseWorld);
             Vector3 meshLocalMouse = editor.Generator.Meshes.InverseTransformPoint(mouseWorld);
 
+            Vector3 localPos = editor.Generator.Meshes.InverseTransformPoint(p.position);
 
-            LBranch closest = editor.Generator.Tree.GetClosestChildNode(p.position, meshLocalMouse, out pos);
-            Debug.Log("FOund raw: " + pos);
-            pos = editor.Generator.Meshes.TransformPoint(pos);
-            Debug.Log("Found world: " + pos);
-            GameObject.FindGameObjectWithTag("Finish").transform.position = pos;
+            LBranchInfo branchInfo = TreeTools.GetClosestPosition(meshLocalMouse);
+            pos = editor.Generator.Meshes.TransformPoint(branchInfo.Position);
+
+            buttonArea.position = GUIPos(pos) - new Vector2(buttonArea.width / 2, buttonArea.height / 2);
+            if (GUI.Button(buttonArea, "")) {
+                editor.Generator.Tree.RemoveIndex(branchInfo.Node.Index);
+                editor.Generator.RebuildMeshes();
+            }
+
+            // prevents lag
+            GameObject.FindGameObjectWithTag("Finish").transform.position = pos + Vector3.forward;
         } else {
-            Debug.Log("not in area");
+            Logger.Print("not in area");
         }
 
+        Handles.EndGUI();
 
     }
 

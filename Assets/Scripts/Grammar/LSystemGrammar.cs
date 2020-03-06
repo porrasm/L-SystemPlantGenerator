@@ -46,10 +46,10 @@ public class LSystemGrammar : ISetting {
 
         foreach (CommandDefinition r in characterDefinitions) {
             if (r.Command == null || r.Command.Length == 0) {
-                Debug.LogWarning("Command was empty");
+                Logger.Warning("Command was empty");
             }
             if (!used.Add(r.Command)) {
-                Debug.LogError("Command was used multiple times: " + r.Command);
+                Logger.Error("Command was used multiple times: " + r.Command);
             }
             r.Validate();
 
@@ -96,11 +96,10 @@ public class LSystemGrammar : ISetting {
 
             newIteration = TransformAliases(newIteration);
             if (lineCount > LINE_LIMIT) {
-                Debug.LogWarning("Too many iterations: " + iterations + ". Succesfully performed " + i + " iterations.");
+                Logger.Warning("Too many iterations: " + iterations + ". Succesfully performed " + i + " iterations.");
                 break;
             }
 
-            Debug.Log("Line count: " + lineCount);
             iteration = newIteration;
         }
 
@@ -152,7 +151,6 @@ public class LSystemGrammar : ISetting {
     private string TransformAliases(string iteration) {
         StringBuilder newIteration = new StringBuilder();
 
-        Debug.Log("Transform aliases: " + iteration);
         List<StringCommand> commands = CommandTools.GetCommands(iteration);
 
         foreach (StringCommand command in commands) {
@@ -173,7 +171,6 @@ public class LSystemGrammar : ISetting {
             }
         }
 
-        Debug.Log("Transformed to: " + newIteration.ToString());
         return newIteration.ToString();
     }
 

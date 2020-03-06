@@ -61,7 +61,7 @@ public class PlantProperties : ISetting {
         Validator.BetweenInclusive(StartingOrientation, 0, 360, "Orientation");
         Validator.Between(StartingLineLength, 0, float.MaxValue, "Line length");
         Validator.Between(startingLineWidth, 0, float.MaxValue, "Line width");
-        Debug.Log("Validation not comeplet");
+        Logger.Print("Validation not comeplet");
     }
 
     public LineState ToLineState() {

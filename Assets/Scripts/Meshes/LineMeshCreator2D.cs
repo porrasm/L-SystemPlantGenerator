@@ -134,12 +134,12 @@ public class LineMeshCreator2D {
         }
 
         if (vertices.Count > 65535) {
-            Debug.Log("line count: " + lines.Count);
-            Debug.Log("Too large mesh: " + vertices.Count);
+            Logger.Print("line count: " + lines.Count);
+            Logger.Print("Too large mesh: " + vertices.Count);
             return default(MeshContainer);
         }
 
-        Debug.Log("Vertex count: " + vertices.Count);
+        Logger.Print("Vertex count: " + vertices.Count);
 
         Mesh mesh = new Mesh();
 

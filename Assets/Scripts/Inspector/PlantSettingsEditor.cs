@@ -8,7 +8,7 @@ using UnityEngine;
 public class PlantSettingsEditor : Editor {
 
     #region fields
-    public PlantMeshGenerator generator;
+    private PlantMeshGenerator generator;
 
     private bool grammarFold;
 
@@ -19,36 +19,42 @@ public class PlantSettingsEditor : Editor {
     private long lastGenerateTime;
     private static int cycleIndex;
 
-    private CustomPlantEditor customPlant;
+    private CustomPlantEditor customPlantEditor;
     #endregion
 
-    public CustomPlantEditor CustomPlant {
+    public CustomPlantEditor CustomEditor {
         get {
-            if (customPlant == null) {
-                customPlant = new CustomPlantEditor(this);
+            if (customPlantEditor == null) {
+                customPlantEditor = new CustomPlantEditor(this);
             }
-            return customPlant;
+            return customPlantEditor;
         }
     }
 
     public override void OnInspectorGUI() {
         //base.OnInspectorGUI();
 
-        GeneralSettingsUI();
-        GeneralPlantSettingUI();
-        PlantPropertiesMenu();
-        GrammarSettings();
-        Settings.Validate();
+        if (CustomEditor.CustomPlant.Enabled) {
+            CustomEditor.EditorGUI();
+        } else {
+            GeneralSettingsUI();
+            GeneralPlantSettingUI();
+            PlantPropertiesMenu();
+            GrammarSettings();
+            Settings.Validate();
 
-        Actions();
+            Actions();
 
-        if (Generator.GenerateOnSettingChange) {
-            StartGenerationCycle();
+            if (Generator.GenerateOnSettingChange) {
+                StartGenerationCycle();
+            }
         }
     }
 
     private void OnSceneGUI() {
-        CustomPlant.Editor();
+        if (CustomEditor.CustomPlant.Enabled) {
+            CustomEditor.Editor();
+        }
     }
 
     private async void StartGenerationCycle() {
@@ -60,7 +66,7 @@ public class PlantSettingsEditor : Editor {
 
         while (Generator.GenerateOnSettingChange && Timer.Passed(startTime) < 5000 && index == cycleIndex) {
 
-            Debug.Log("Cycle");
+            Logger.Print("Cycle");
 
             long sinceLast = Timer.Passed(lastGenerateTime);
 
@@ -78,7 +84,7 @@ public class PlantSettingsEditor : Editor {
             await Task.Delay(delay);
         }
 
-        Debug.Log("Stop cycle " + index);
+        Logger.Print("Stop cycle " + index);
     }
 
     private void OnValidate() {
@@ -320,6 +326,9 @@ public class PlantSettingsEditor : Editor {
             foreach (PlantMeshGenerator g in GameObject.FindObjectsOfType<PlantMeshGenerator>()) {
                 g.GeneratePlant();
             }
+        }
+        if (GUILayout.Button("Enter custom editor")) {
+            CustomEditor.CustomPlant.Enabled = true;
         }
 
         InspectorGUI.EndArea();
