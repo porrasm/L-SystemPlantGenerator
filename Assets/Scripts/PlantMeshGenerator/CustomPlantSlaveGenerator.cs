@@ -1,45 +1,23 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using System.Text;
 using UnityEngine;
 
-public class PlantMeshGenerator : IPlantMeshGenerator {
-
+public class CustomPlantSlaveGenerator : IPlantMeshGenerator {
     #region fields
     private PlantMeshCreator creator;
-
     private LBranch node;
-
-    [SerializeField]
-    private PlantSettings settings = new PlantSettings();
-
-    [SerializeField]
-    private bool generateOnSettingChange;
-
-    [SerializeField]
-    private int generateTimeLimit = 1000;
-
-    [SerializeField]
-    private MeshContainer plantMesh;
-
-    public PlantSettings Settings { get => settings; set => settings = value; }
-    public bool GenerateOnSettingChange { get => generateOnSettingChange; set => generateOnSettingChange = value; }
-    public int GenerateTimeLimit { get => generateTimeLimit; set => generateTimeLimit = value; }
-    public MeshContainer PlantMesh { get => plantMesh; }
-
+    private PlantMeshGenerator Owner { get; set; }
     private TreeCreator treeCreator;
-
-    private string axiomTest = "f(+f)f(-f(+f)f(+f)f)f(-f)f(+f)f(-f(-f)f(-f)f)f(-f)f(+f)f(-f(-f)f(+f)f(-f(-f)f(-f)f)f(-f)f(-f)f(-f(-f)f(+f)f)f(-f)f(-f)f)f(-f)f(-f)f(-f(-f)f(-f)f)f(-f)f(+f)f(-f(+f)f(+f)f)f(-f)f(-f)f(+f(-f)f(-f(+f)f(+f)f)f(-f)f(+f)f(+f(-f)f(+f)f)f(-f)f(+f)f(-f(-f)f(+f)f(-f(+f)f(+f)f)f(+f)f(+f)f(+f(-f)f(+f)f)f(-f)f(-f)f)f(-f)f(-f)f(-f(-f)f(+f)f)f(-f)f(+f)f(-f(-f)f(+f)f)f(-f)f(-f)f(+f(-f)f(-f)f(+f(-f)f(+f)f)f(-f)f(+f)f(+f(-f)f(+f)f)f(-f)f(+f)f)f(-f)f(+f)f(-f(+f)f(+f)f)f(-f)f(+f(-f)f(-f)f)f(-f)f(+f)f)f(-f)f(+f)f(+f(-f)f)f(+f)f(+f)f(+f(+f)f(+f)f)f(-f)f(-f)f(-f(-f)f(-f)(f(-f(-f)f(+f)f)f(-f)f(+f)f(-f(-f)f)f(-f)f(+f)f)f(-f)f(-f)f(+f(-f)f(+f)f)f(+f)f(-f)f(+f(-f)f(-f)f)f(-f)f(+f(+f)f(+f)f(-f(-f)f(-f)f)f(-f)f(+f)f(+f(-f)f(-f)f)f(-f)f(+f)f)f(+f)f(-f(+f)f(+f)f)f(+f)f(+f)f(+f(+f)f(+f)f)f(-f)f(-f)f(+f(-f)f(-f)f(-f(-f)f(+f)f)f(+f)f(+f)f(-f(-f)f)f(-f)f(+f)f(-f(-f)f(-f)f(-f(+f)f(+f)f)f(+f)f(-f)f(+f(+f)f(+f)f)f(-f)f(-f)f)f(+f)f(+f)f(+f(-f)f(+f)f)f(-f)f(+f)f(+f(+f)f(+f)f)f(-f)f(-f(-f)f(-f)f(+f(-f)f(+f)f)f(+f)f(+f)f(+f(+f)f(+f)f)f(-f)f(-f)f)f(-f)f(+f)f(-f(-f)f(-f)f)f(-f)f(+f)f)f(+f)f(+f)f(-f(-f)f(-f)f)f(-f)(f(-f)f(+f(-f)f)f(-f)f(+f)f(-f(-f)f(-f)f(-f(-f)f(-f)f)f(-f)f(-f)f(-f(-f)f(+f)f)f(-f)f(-f)f)f(+f)f(+f)f(-f(-f)f(+f)f)f(+f))f(+f)f(-f(-f)f(-f)f)f(-f)f(-f(-f)f(+f)f(-f(-f)f(+f)f)f(+f)f(+f)f(+f(+f)f(+f)f)f(-f)f(-f)f)f(-f)f(+f)f(-f(-f)f(-f)f)f(+f)f(+f)f(-f(-f)f(+f)f)f(+f)f(+f)f)";
+    public PlantSettings Settings { get => Owner?.Settings; }
     #endregion
 
-    public void Initialize() {
-        treeCreator = new TreeCreator(this);
+    private void Initialize() {
+        treeCreator = new TreeCreator(Settings);
     }
 
     private void OnValidate() {
         Logger.Print("Validate");
-        Initialize();
-        Settings.Validate();
+        Settings?.Validate();
     }
 
     private void Start() {
@@ -85,8 +63,8 @@ public class PlantMeshGenerator : IPlantMeshGenerator {
             return;
         }
 
-        float width = PlantMesh.Bounds.extents.x * 2;
-        float height = PlantMesh.Bounds.extents.y * 2;
+        float width = plantMesh.Bounds.extents.x * 2;
+        float height = plantMesh.Bounds.extents.y * 2;
 
         float multiplier = float.MaxValue;
 
@@ -111,5 +89,12 @@ public class PlantMeshGenerator : IPlantMeshGenerator {
         Meshes.localScale = Vector3.one * multiplier;
 
         plantMesh.ScaledBounds = new Bounds(plantMesh.Bounds.center, plantMesh.Bounds.size * multiplier);
+    }
+
+    public static CustomPlantSlaveGenerator Add(GameObject g, PlantMeshGenerator owner) {
+        CustomPlantSlaveGenerator s = g.AddComponent<CustomPlantSlaveGenerator>();
+        s.Owner = owner ?? throw new System.Exception("Owner was null");
+        s.Initialize();
+        return s;
     }
 }

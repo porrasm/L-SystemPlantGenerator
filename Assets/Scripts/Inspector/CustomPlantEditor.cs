@@ -33,7 +33,7 @@ public class CustomPlantEditor {
         InspectorGUI.CreateBox();
         GUILayout.Label("Custom plant editor");
         if (GUILayout.Button("Exit editor")) {
-            CustomPlant.Enabled = false;
+            editor.DisableCustom();
         }
         if (GUILayout.Button("Finish")) {
         }
@@ -41,6 +41,10 @@ public class CustomPlantEditor {
     }
 
     public void Editor() {
+
+        CustomPlant.Update();
+
+        return;
         Handles.BeginGUI();
 
         Camera cam = SceneView.lastActiveSceneView.camera;
@@ -70,7 +74,7 @@ public class CustomPlantEditor {
 
             Vector3 pos;
 
-            Vector3 mouseWorld = WorldPos(Event.current.mousePosition);
+            Vector3 mouseWorld = ToWorldPos(Event.current.mousePosition);
             Vector3 meshLocalMouse = editor.Generator.Meshes.InverseTransformPoint(mouseWorld);
 
             Vector3 localPos = editor.Generator.Meshes.InverseTransformPoint(p.position);
@@ -78,7 +82,7 @@ public class CustomPlantEditor {
             LBranchInfo branchInfo = TreeTools.GetClosestPosition(meshLocalMouse);
             pos = editor.Generator.Meshes.TransformPoint(branchInfo.Position);
 
-            buttonArea.position = GUIPos(pos) - new Vector2(buttonArea.width / 2, buttonArea.height / 2);
+            buttonArea.position = ToGuiPos(pos) - new Vector2(buttonArea.width / 2, buttonArea.height / 2);
             if (GUI.Button(buttonArea, "")) {
                 editor.Generator.Tree.RemoveIndex(branchInfo.Node.Index);
                 editor.Generator.RebuildMeshes();
@@ -94,20 +98,20 @@ public class CustomPlantEditor {
 
     }
 
-    private Vector2 GUIPos(Vector3 worldPos) {
+    public static Vector2 ToGuiPos(Vector3 worldPos) {
         return HandleUtility.WorldToGUIPoint(worldPos);
     }
-    private Vector3 WorldPos(Vector2 guiPos, Vector3 worldPos = default) {
+    public static Vector3 ToWorldPos(Vector2 guiPos, Vector3 worldPos = default) {
         Vector3 pos = HandleUtility.GUIPointToWorldRay(guiPos).origin;
         pos.z = worldPos.z;
         return pos;
     }
-    private Rect BoundsToRect(Bounds b, Vector2 center = default) {
+    public static Rect BoundsToRect(Bounds b, Vector2 center = default) {
 
         Vector2 lowerLeft = b.center - b.extents;
         Vector2 upperRight = b.center + b.extents;
-        lowerLeft = GUIPos(lowerLeft);
-        upperRight = GUIPos(upperRight);
+        lowerLeft = ToGuiPos(lowerLeft);
+        upperRight = ToGuiPos(upperRight);
 
         Vector2 size = upperRight - lowerLeft;
         size.y *= -1;

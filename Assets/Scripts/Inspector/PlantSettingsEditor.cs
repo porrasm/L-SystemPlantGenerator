@@ -328,13 +328,23 @@ public class PlantSettingsEditor : Editor {
             }
         }
         if (GUILayout.Button("Enter custom editor")) {
-            CustomEditor.CustomPlant.Enabled = true;
+            EnableCustom();
         }
 
         InspectorGUI.EndArea();
     }
     #endregion
 
+    public void EnableCustom() {
+        CustomEditor.CustomPlant.Enabled = true;
+        Generator.Meshes.gameObject.SetActive(false);
+        CustomEditor.CustomPlant.Initialize();
+    }
+    public void DisableCustom() {
+        CustomEditor.CustomPlant.Enabled = false;
+        Generator.Meshes.gameObject.SetActive(true);
+        CustomEditor.CustomPlant.Clean();
+    }
 
     public PlantMeshGenerator Generator {
         get {

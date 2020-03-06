@@ -5,13 +5,13 @@ using UnityEngine;
 public class TreeCreator {
 
     #region fields
-    private PlantMeshGenerator generator;
+    private PlantSettings settings;
     private string treeString;
     private LBranch node;
     #endregion
 
-    public TreeCreator(PlantMeshGenerator generator) {
-        this.generator = generator;
+    public TreeCreator(PlantSettings settings) {
+        this.settings = settings;
     }
 
     public LBranch CreateTree(string treeString) {
@@ -20,7 +20,7 @@ public class TreeCreator {
 
         Logger.Print("Result: " + treeString.Length);
 
-        LBranch tree = new LBranch(generator.Settings.Properties.ToLineState());
+        LBranch tree = new LBranch(settings.Properties.ToLineState());
         node = tree;
 
         List<StringCommand> commands = CommandTools.GetCommands(treeString);
@@ -61,8 +61,8 @@ public class TreeCreator {
         }
     }
     private void AddVariationToCurrent() {
-        node.State.Width += generator.Settings.Properties.LineWidthVariance.GetSeededFloat();
-        node.State.Orientation += generator.Settings.Properties.AngleVariance.GetSeededFloat();
-        node.State.CurrentLength = node.State.NextLength + generator.Settings.Properties.LineLengthVariance.GetSeededFloat();
+        node.State.Width += settings.Properties.LineWidthVariance.GetSeededFloat();
+        node.State.Orientation += settings.Properties.AngleVariance.GetSeededFloat();
+        node.State.CurrentLength = node.State.NextLength + settings.Properties.LineLengthVariance.GetSeededFloat();
     }
 }
