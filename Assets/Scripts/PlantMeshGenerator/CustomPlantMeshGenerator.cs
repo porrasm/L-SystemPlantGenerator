@@ -5,8 +5,10 @@ using UnityEngine;
 public class CustomPlantMeshGenerator : IPlantMeshGenerator {
 
     #region fields
-    private PlantSettings settings;
+    private PlantMeshGenerator owner;
     private PlantMeshCreator creator;
+
+    private PlantSettings Settings { get => owner.Settings; }
     #endregion
 
     public override void GeneratePlant() {
@@ -14,6 +16,10 @@ public class CustomPlantMeshGenerator : IPlantMeshGenerator {
     }
 
     public override void RebuildMeshes(bool autoResize = false) {
+        if (tree == null) {
+            GetMesh(0).mesh = null;
+            return;
+        }
         creator = new PlantMeshCreator(Vector3.zero, tree.State.Width);
         plantMesh = creator.BuildTreeMesh(tree);
 
@@ -26,42 +32,13 @@ public class CustomPlantMeshGenerator : IPlantMeshGenerator {
     }
 
     protected override void ResizePlant() {
-        if (!settings.Properties.ScaleToWidth && !settings.Properties.ScaleToLength) {
-            Meshes.localScale = Vector3.one;
-            return;
-        }
-
-        float width = plantMesh.Bounds.extents.x * 2;
-        float height = plantMesh.Bounds.extents.y * 2;
-
-        float multiplier = float.MaxValue;
-
-        if (settings.Properties.ScaleToWidth) {
-
-            float wMult = settings.Properties.TargetWidth.Value / width;
-            if (wMult < multiplier) {
-                multiplier = wMult;
-            }
-        }
-        if (settings.Properties.ScaleToLength) {
-            Logger.Print("Settings.Properties.TargetLength.Value: " + settings.Properties.TargetLength.Value);
-            float hMult = settings.Properties.TargetLength.Value / height;
-            if (hMult < multiplier) {
-                multiplier = hMult;
-            }
-        }
-
-        Logger.Print("Bounds: " + plantMesh.Bounds);
-        Logger.Print("Mult: " + multiplier);
-
-        Meshes.localScale = Vector3.one * multiplier;
-
-        plantMesh.ScaledBounds = new Bounds(plantMesh.Bounds.center, plantMesh.Bounds.size * multiplier);
+        Meshes.transform.localScale = owner.Meshes.localScale;
+        PlantMesh.SetMultiplier(owner.PlantMesh.GetMultiplier());
     }
 
-    public static CustomPlantMeshGenerator Add(GameObject g, PlantSettings settings) {
+    public static CustomPlantMeshGenerator Add(GameObject g, PlantMeshGenerator owner) {
         CustomPlantMeshGenerator p = g.AddComponent<CustomPlantMeshGenerator>();
-        p.settings = settings;
+        p.owner = owner;
         return p;
-    } 
+    }
 }

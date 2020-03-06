@@ -338,7 +338,7 @@ public class PlantSettingsEditor : Editor {
     public void EnableCustom() {
         CustomEditor.CustomPlant.Enabled = true;
         Generator.Meshes.gameObject.SetActive(false);
-        CustomEditor.CustomPlant.Initialize();
+        CustomEditor.Initialize();
     }
     public void DisableCustom() {
         CustomEditor.CustomPlant.Enabled = false;

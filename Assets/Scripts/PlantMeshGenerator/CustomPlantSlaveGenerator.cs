@@ -57,38 +57,8 @@ public class CustomPlantSlaveGenerator : IPlantMeshGenerator {
     }
 
     protected override void ResizePlant() {
-
-        if (!Settings.Properties.ScaleToWidth && !Settings.Properties.ScaleToLength) {
-            Meshes.localScale = Vector3.one;
-            return;
-        }
-
-        float width = plantMesh.Bounds.extents.x * 2;
-        float height = plantMesh.Bounds.extents.y * 2;
-
-        float multiplier = float.MaxValue;
-
-        if (Settings.Properties.ScaleToWidth) {
-
-            float wMult = Settings.Properties.TargetWidth.Value / width;
-            if (wMult < multiplier) {
-                multiplier = wMult;
-            }
-        }
-        if (Settings.Properties.ScaleToLength) {
-            Logger.Print("Settings.Properties.TargetLength.Value: " + Settings.Properties.TargetLength.Value);
-            float hMult = Settings.Properties.TargetLength.Value / height;
-            if (hMult < multiplier) {
-                multiplier = hMult;
-            }
-        }
-
-        Logger.Print("Bounds: " + plantMesh.Bounds);
-        Logger.Print("Mult: " + multiplier);
-
-        Meshes.localScale = Vector3.one * multiplier;
-
-        plantMesh.ScaledBounds = new Bounds(plantMesh.Bounds.center, plantMesh.Bounds.size * multiplier);
+        Meshes.localScale = Owner.Meshes.localScale;
+        PlantMesh.SetMultiplier(Owner.PlantMesh.GetMultiplier());
     }
 
     public static CustomPlantSlaveGenerator Add(GameObject g, PlantMeshGenerator owner) {

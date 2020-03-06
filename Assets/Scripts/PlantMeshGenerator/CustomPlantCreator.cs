@@ -7,9 +7,9 @@ public class CustomPlantCreator {
     #region fields
     private PlantMeshGenerator owner;
 
-    private CustomPlantMeshGenerator customPlantGenerator;
-    private CustomPlantSlaveGenerator customPlantPartsGenerator;
-    private CustomPlantMeshGenerator selectedPartGenerator;
+    public CustomPlantMeshGenerator customPlantGenerator { get; private set; }
+    public CustomPlantSlaveGenerator customPlantPartsGenerator { get; private set; }
+    public CustomPlantMeshGenerator selectedPartGenerator { get; private set; }
 
     public bool Enabled { get; set; }
 
@@ -49,14 +49,14 @@ public class CustomPlantCreator {
         selectedPart.name = "Selected part";
     }
     private void InitializeGenerators() {
-        customPlantGenerator = CustomPlantMeshGenerator.Add(customPlant.gameObject, owner.Settings);
+        customPlantGenerator = CustomPlantMeshGenerator.Add(customPlant.gameObject, owner);
         Logger.Print("Add slave");
         customPlantPartsGenerator = CustomPlantSlaveGenerator.Add(customPlantParts.gameObject, owner);
-        selectedPartGenerator = CustomPlantMeshGenerator.Add(selectedPart.gameObject, owner.Settings);
+        selectedPartGenerator = CustomPlantMeshGenerator.Add(selectedPart.gameObject, owner);
 
         customPlantPartsGenerator.GeneratePlant();
         customPlantGenerator.Tree = customPlantPartsGenerator.Tree;
-        customPlantGenerator.RebuildMeshes(true);
+        customPlantGenerator.GeneratePlant();
     }
 
     public void Clean() {
@@ -72,7 +72,7 @@ public class CustomPlantCreator {
 
         Vector3 offset = owner.transform.position;
 
-        customPlantParts.transform.position = offset + new Vector3(customPlantGenerator.PlantMesh.ScaledBounds.extents.x * 1.1f + customPlantPartsGenerator.PlantMesh.ScaledBounds.extents.x, 0);
+        customPlantParts.transform.position = offset + new Vector3(customPlantGenerator.PlantMesh.ScaledBounds.extents.x * 0.35f + 0f * customPlantPartsGenerator.PlantMesh.ScaledBounds.extents.x, 0);
         selectedPart.transform.position = CustomPlantEditor.ToWorldPos(Event.current.mousePosition);
     }
 }

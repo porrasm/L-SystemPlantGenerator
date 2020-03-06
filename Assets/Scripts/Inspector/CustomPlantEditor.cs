@@ -10,23 +10,47 @@ public class CustomPlantEditor {
     Rect rect = new Rect(10, 10, 50, 50);
     private bool pressed;
 
-    private LBranchTools treeTools;
-
     public CustomPlantCreator CustomPlant { get; private set; }
+
+    private Vector2 mouseWorldPos;
+
+    private bool customSelected;
+
+    private delegate void GUIButtonCallback(LBranchInfo info);
+
+    private LBranchTools[] plantTools;
     #endregion
 
     public CustomPlantEditor(PlantSettingsEditor editor) {
         this.editor = editor;
         CustomPlant = new CustomPlantCreator(editor.Generator);
+        plantTools = new LBranchTools[2];
     }
 
-    private LBranchTools TreeTools {
+    private LBranchTools CustomPlantTools {
         get {
-            if (treeTools == null || !ReferenceEquals(treeTools.Tree, editor.Generator.Tree) || treeTools.Count != editor.Generator.Tree.Count) {
-                treeTools = new LBranchTools(editor.Generator.Tree);
+            if (plantTools[0] == null) {
+                RecalculateTools();
             }
-            return treeTools;
+            return plantTools[0];
         }
+    }
+    private LBranchTools CustomPartsTools {
+        get {
+            if (plantTools[1] == null) {
+                RecalculateTools();
+            }
+            return plantTools[0];
+        }
+    }
+    private void RecalculateTools() {
+        plantTools[0] = new LBranchTools(CustomPlant.customPlantGenerator.Tree);
+        plantTools[1] = new LBranchTools(CustomPlant.customPlantPartsGenerator.Tree);
+    }
+
+    public void Initialize() {
+        CustomPlant.Initialize();
+        RecalculateTools();
     }
 
     public void EditorGUI() {
@@ -42,61 +66,86 @@ public class CustomPlantEditor {
 
     public void Editor() {
 
-        CustomPlant.Update();
+        mouseWorldPos = ToWorldPos(Event.current.mousePosition);
 
-        return;
+        float customDistance = Vector2.Distance(CustomPlant.customPlantGenerator.transform.position, mouseWorldPos);
+        float partsDistance = Vector2.Distance(CustomPlant.customPlantPartsGenerator.transform.position, mouseWorldPos);
+
         Handles.BeginGUI();
-
-        Camera cam = SceneView.lastActiveSceneView.camera;
-
-        Transform p = editor.Generator.transform;
-
-        Vector3 center = p.position + new Vector3(editor.Generator.PlantMesh.ScaledBounds.extents.x, editor.Generator.PlantMesh.ScaledBounds.extents.y);
-        center.z = 0;
-
-        // incorrect
-        center = HandleUtility.WorldToGUIPoint(center);
-
-        rect.center = center;
-
-        Rect plantArea = BoundsToRect(editor.Generator.PlantMesh.ScaledBounds, center);
-        plantArea.size *= 1.1f;
-
-        //GUI.Box(plantArea, "AREA");
-
-        //if (GUI.Button(plantArea, "Drag")) {
-        //    pressed = !pressed;
-        //}
-
-        Rect buttonArea = new Rect(0, 0, 15, 15);
-
-        if (plantArea.Contains(Event.current.mousePosition) || true) {
-
-            Vector3 pos;
-
-            Vector3 mouseWorld = ToWorldPos(Event.current.mousePosition);
-            Vector3 meshLocalMouse = editor.Generator.Meshes.InverseTransformPoint(mouseWorld);
-
-            Vector3 localPos = editor.Generator.Meshes.InverseTransformPoint(p.position);
-
-            LBranchInfo branchInfo = TreeTools.GetClosestPosition(meshLocalMouse);
-            pos = editor.Generator.Meshes.TransformPoint(branchInfo.Position);
-
-            buttonArea.position = ToGuiPos(pos) - new Vector2(buttonArea.width / 2, buttonArea.height / 2);
-            if (GUI.Button(buttonArea, "")) {
-                editor.Generator.Tree.RemoveIndex(branchInfo.Node.Index);
-                editor.Generator.RebuildMeshes();
-            }
-
-            // prevents lag
-            GameObject.FindGameObjectWithTag("Finish").transform.position = pos + Vector3.forward;
+        if (customSelected) {
+            CustomSelectedFunctions();
+        } else if (customDistance < partsDistance) {
+            CustomPlantFunctions();
         } else {
-            Logger.Print("not in area");
+            CustomPartsFunctions();
         }
-
         Handles.EndGUI();
 
+        CustomPlant.Update();
     }
+
+    private void CustomSelectedFunctions() {
+        Rect buttonArea = new Rect(0, 0, 15, 15);
+        buttonArea.position = ToGuiPos(mouseWorldPos) - new Vector2(buttonArea.width / 2, buttonArea.height / 2);
+        
+        void CB(LBranchInfo closest) {
+            Logger.Print("Merging tree");
+            LBranch.Merge(closest.Node, CustomPlant.selectedPartGenerator.Tree);
+            Deselect();
+            CustomPlant.customPlantGenerator.GeneratePlant();
+            RecalculateTools();
+        }
+        Rect acceptArea = GUIButton(CB, CustomPlant.customPlantGenerator.Meshes.transform, CustomPlantTools, "✓");
+
+        if (!acceptArea.Contains(buttonArea.center)) {
+            if (GUI.Button(buttonArea, "X")) {
+                Logger.Print("Disable grab");
+                Deselect();
+            }
+        }
+    }
+    private void CustomPlantFunctions() {
+        void CB(LBranchInfo branchInfo) {
+            CustomPlant.customPlantGenerator.Tree.Remove(branchInfo.Node);
+            Select(branchInfo.Node);
+            CustomPlant.customPlantGenerator.GeneratePlant();
+            RecalculateTools();
+        }
+
+        GUIButton(CB, CustomPlant.customPlantGenerator.Meshes.transform, CustomPlantTools);
+    }
+    private void CustomPartsFunctions() {
+        void CB(LBranchInfo branchInfo) {
+            Select(branchInfo.Node);
+        }
+
+        GUIButton(CB, CustomPlant.customPlantPartsGenerator.Meshes.transform, CustomPartsTools);
+    }
+    private void Select(LBranch part) {
+        CustomPlant.selectedPartGenerator.Tree = part;
+        CustomPlant.selectedPartGenerator.GeneratePlant();
+        customSelected = true;
+    }
+    private void Deselect() {
+        CustomPlant.selectedPartGenerator.Tree = null;
+        CustomPlant.selectedPartGenerator.GeneratePlant();
+        customSelected = false;
+    }
+
+    private Rect GUIButton(GUIButtonCallback cb, Transform t, LBranchTools tools, string text = "") {
+        Rect buttonArea = new Rect(0, 0, 15, 15);
+
+        Vector2 localMouse = t.InverseTransformPoint(mouseWorldPos);
+        LBranchInfo branchInfo = tools.GetClosestPosition(localMouse);
+        Vector2 nodePos = t.TransformPoint(branchInfo.Position);
+
+        buttonArea.position = ToGuiPos(nodePos) - new Vector2(buttonArea.width / 2, buttonArea.height / 2);
+        if (GUI.Button(buttonArea, text)) {
+            cb?.Invoke(branchInfo);
+        }
+        return buttonArea;
+    }
+
 
     public static Vector2 ToGuiPos(Vector3 worldPos) {
         return HandleUtility.WorldToGUIPoint(worldPos);

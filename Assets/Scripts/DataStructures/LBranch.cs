@@ -48,6 +48,11 @@ public class LBranch {
         Branches.Add(child);
         return child;
     }
+    public LBranch AddChild(LBranch child) {
+        LBranch added = AddChild();
+        added.State = child.State.Copy();
+        return added;
+    }
     public LBranch Append() {
         LBranch next = new LBranch(State.Copy());
         SetRoot(next);
@@ -56,69 +61,64 @@ public class LBranch {
         this.Next = next;
         return next;
     }
+    public LBranch Append(LBranch node) {
+        LBranch appended = Append();
+        appended.State = node.State.Copy();
+        return appended;
+    }
+
     private void SetRoot(LBranch node) {
         node.Root = this.Root;
         node.countIndex = this.Root.Count;
         this.Root.countIndex++;
     }
 
-    public void RemoveThis() {
-        if (IsRoot) {
-            throw new Exception("Cannot remove root");
+    public void Remove(LBranch node) {
+
+        if (Root != node.Root) {
+            throw new Exception("Node is not in tree");
         }
 
-        Depth = -1;
-        Parent.RemoveChildren();
-    }
-    public LBranch RemoveIndex(int index) {
-        LBranch removed = RemoveIndexHelper(this, index);
-        if (removed == null) {
-            throw new Exception("Invalid index: " + index);
+        LBranch prev = node.Prev;
+        if (prev != null) {
+            prev.Next = null;
         }
-        removed.Root = removed;
-        removed.Parent = null;
-        removed.Prev = null;
-        return removed;
+        LBranch parent = node.Parent;
+        if (parent != null) {
+            parent.RemoveChild(node.Index);
+        }
+
+        node.Root = node;
+        node.Parent = null;
+        node.Prev = null;
+
+        FixIndexes();
     }
 
-    private static LBranch RemoveIndexHelper(LBranch node, int index) {
-        if (node == null) {
-            return null;
-        }
-        if (node.HasNext && node.Next.Index == index) {
-            Logger.Print("Found index: " + index);
-            LBranch n = node.Next;
-            node.Next = null;
-            return n;
-        }
-        for (int i = 0; i < node.Branches.Count; i++) {
-            if (node.Branches[i].Index == index) {
-                Logger.Print("Found child index: " + index);
-                LBranch n = node.Branches[i];
-                node.Branches.RemoveAt(i);
-                return n;
-            }
-        }
-        LBranch ret = RemoveIndexHelper(node.Next, index);
-        if (ret != null) {
-            return ret;
-        }
-        foreach (LBranch child in node.Branches) {
-            ret = RemoveIndexHelper(child, index);
-            if (ret != null) {
-                return ret;
-            }
-        }
-        return null;
-    }
-
-    private void RemoveChildren() {
+    private void RemoveChild(int index) {
         for (int i = 0; i < Branches.Count; i++) {
-            if (Branches[i].Depth < 0) {
+            if (Branches[i].Index == index) {
                 Branches.RemoveAt(i);
-                i--;
+                return;
             }
         }
+    }
+    private void FixIndexes() {
+        Root.countIndex = FixIndexesHelper(Root, 0, 0);
+    }
+    private int FixIndexesHelper(LBranch node, int index, int depth) {
+        node.countIndex = index;
+        node.Depth = depth;
+
+        int count = 1;
+        foreach (LBranch child in node.Branches) {
+            count += FixIndexesHelper(child, index + 1, depth + 1);
+        }
+        if (node.HasNext) {
+            count += FixIndexesHelper(node.Next, index + 1, depth);
+        }
+
+        return count;
     }
 
     public Vector2 GetOrientationDirection() {
@@ -138,7 +138,44 @@ public class LBranch {
         return Index == other.Index;
     }
 
+    private List<LBranch> GetAllNodes() {
+        Queue<LBranch> nodes = new Queue<LBranch>();
+        nodes.Enqueue(this);
+
+        List<LBranch> ordered = new List<LBranch>();
+
+        while (nodes.Count > 0) {
+            LBranch node = nodes.Dequeue();
+            ordered.Add(node);
+
+            foreach (LBranch child in node.Branches) {
+                nodes.Enqueue(child);
+            }
+            if (node.HasNext) {
+                nodes.Enqueue(node.Next);
+            }
+        }
+
+        return ordered;
+    }
+
     public override int GetHashCode() {
         return -2134847229 + Index.GetHashCode();
+    }
+
+    public static void Merge(LBranch addToStart, LBranch toAddStart) {
+        MergeHelper(addToStart, toAddStart);
+    }
+    private static void MergeHelper(LBranch addTo, LBranch toAdd) {
+        while (toAdd.HasNext) {
+            foreach (LBranch child in toAdd.Branches) {
+                LBranch newAddTo = addTo.AddChild(child);
+                MergeHelper(newAddTo, child);
+            }
+            if (toAdd.HasNext) {
+                LBranch newAddTo = addTo.Append(toAdd);
+                toAdd = toAdd.Next;
+            }
+        }
     }
 }

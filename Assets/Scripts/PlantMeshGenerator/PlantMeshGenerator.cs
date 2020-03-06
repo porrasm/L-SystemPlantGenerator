@@ -113,6 +113,7 @@ public class PlantMeshGenerator : IPlantMeshGenerator {
     }
 
     public void CleanTransform() {
+        Logger.Print("Cleaning transform");
         foreach (Transform child in transform) {
             if (!child.name.Equals("Meshes")) {
                 DestroyImmediate(child.gameObject);
