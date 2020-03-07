@@ -44,8 +44,8 @@ public class CustomPlantEditor {
         }
     }
     private void RecalculateTools() {
-        plantTools[0] = new LBranchTools(CustomPlant.customPlantGenerator.Tree);
-        plantTools[1] = new LBranchTools(CustomPlant.customPlantPartsGenerator.Tree);
+        plantTools[0] = new LBranchTools(CustomPlant.customPlantGenerator.Plant);
+        plantTools[1] = new LBranchTools(CustomPlant.customPlantPartsGenerator.Plant);
     }
 
     public void Initialize() {
@@ -90,7 +90,8 @@ public class CustomPlantEditor {
         
         void CB(LBranchInfo closest) {
             Logger.Print("Merging tree");
-            LBranch.Merge(closest.Node, CustomPlant.selectedPartGenerator.Tree);
+            closest.Plant.Merge(CustomPlant.selectedPartGenerator.Plant, closest.PartID);
+
             Deselect();
             CustomPlant.customPlantGenerator.GeneratePlant();
             RecalculateTools();
@@ -106,8 +107,9 @@ public class CustomPlantEditor {
     }
     private void CustomPlantFunctions() {
         void CB(LBranchInfo branchInfo) {
-            CustomPlant.customPlantGenerator.Tree.Remove(branchInfo.Node);
-            Select(branchInfo.Node);
+            branchInfo.Plant.Remove(branchInfo.PartID);
+
+            Select(branchInfo.Plant, branchInfo.PartID);
             CustomPlant.customPlantGenerator.GeneratePlant();
             RecalculateTools();
         }
@@ -116,18 +118,18 @@ public class CustomPlantEditor {
     }
     private void CustomPartsFunctions() {
         void CB(LBranchInfo branchInfo) {
-            Select(branchInfo.Node);
+            Select(branchInfo.Plant, branchInfo.PartID);
         }
 
         GUIButton(CB, CustomPlant.customPlantPartsGenerator.Meshes.transform, CustomPartsTools);
     }
-    private void Select(LBranch part) {
-        CustomPlant.selectedPartGenerator.Tree = part;
+    private void Select(Plant plant, int part) {
+        CustomPlant.selectedPartGenerator.Plant = plant.Cut(part);
         CustomPlant.selectedPartGenerator.GeneratePlant();
         customSelected = true;
     }
     private void Deselect() {
-        CustomPlant.selectedPartGenerator.Tree = null;
+        CustomPlant.selectedPartGenerator.Plant = null;
         CustomPlant.selectedPartGenerator.GeneratePlant();
         customSelected = false;
     }

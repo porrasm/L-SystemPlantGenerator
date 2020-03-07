@@ -170,7 +170,7 @@ public class PlantSettingsEditor : Editor {
         state.Orientation = InspectorGUI.FloatSlider("Orientation", state.Orientation, 0, 360);
         state.Width = InspectorGUI.FloatField("Width", state.Width);
         state.NextLength = InspectorGUI.FloatField("Length", state.NextLength);
-        state.Color = InspectorGUI.ColorField("Color", state.Color);
+        state.Color = InspectorGUI.ColorField("Color", state.Color.Color);
 
         InspectorGUI.EndArea();
     }

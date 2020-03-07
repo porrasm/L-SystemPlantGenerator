@@ -7,21 +7,23 @@ public class TreeCreator {
     #region fields
     private PlantSettings settings;
     private string treeString;
-    private LBranch node;
+    private Plant plant;
+    private int current;
     #endregion
 
     public TreeCreator(PlantSettings settings) {
         this.settings = settings;
     }
 
-    public LBranch CreateTree(string treeString) {
+    public Plant CreatePlant(string treeString) {
 
         this.treeString = treeString;
 
         Logger.Print("Result: " + treeString.Length);
 
-        LBranch tree = new LBranch(settings.Properties.ToLineState());
-        node = tree;
+
+        plant = new Plant(settings.Properties.ToLineState());
+        current = 0;
 
         List<StringCommand> commands = CommandTools.GetCommands(treeString);
 
@@ -29,40 +31,44 @@ public class TreeCreator {
             ExecuteCommand(command);
         }
 
-        node = null;
-        return tree;
+        Plant saved = plant;
+        plant = null;
+        treeString = null;
+        return saved;
     }
+
     private void ExecuteCommand(StringCommand s) {
 
         // Handle state parameters
         if (s.Type == StringCommand.CommandType.Command) {
             if (s.Command.Equals("f")) {
                 AddVariationToCurrent();
-                node = node.Append();
+                current = plant.AppendAfter(current);
             }
             if (s.Command.Equals("+")) {
-                node.State.Orientation += node.State.Angle;
+                plant.GetPart(current).State.AddAngle(1);
                 AddVariationToCurrent();
             }
             if (s.Command.Equals("-")) {
-                node.State.Orientation -= node.State.Angle;
+                plant.GetPart(current).State.AddAngle(-1);
                 AddVariationToCurrent();
             }
             if (s.Command.Equals("(")) {
-                node = node.AddChild();
+                current = plant.AppenUnder(current);
             }
             if (s.Command.Equals(")")) {
-                node = node.Parent;
+                current = plant.GetPart(current).Parent;
             }
         } else if (s.Type == StringCommand.CommandType.CommandParameter) {
 #if UNITY_EDITOR
-            node.State.ExecuteParameterCommands(s);
+            plant.GetPart(current).State.ExecuteParameterCommands(s);
 #endif
         }
     }
     private void AddVariationToCurrent() {
-        node.State.Width += settings.Properties.LineWidthVariance.GetSeededFloat();
-        node.State.Orientation += settings.Properties.AngleVariance.GetSeededFloat();
-        node.State.CurrentLength = node.State.NextLength + settings.Properties.LineLengthVariance.GetSeededFloat();
+        LineState state = plant.GetPart(current).State;
+        state.Width += settings.Properties.LineWidthVariance.GetSeededFloat();
+        state.Orientation += settings.Properties.AngleVariance.GetSeededFloat();
+        state.CurrentLength = state.NextLength + settings.Properties.LineLengthVariance.GetSeededFloat();
     }
 }

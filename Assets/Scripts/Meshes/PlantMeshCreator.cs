@@ -12,25 +12,30 @@ public class PlantMeshCreator {
         meshCreator = new LineMeshCreator2D(startPos, startWidth);
     }
 
-    public MeshContainer BuildTreeMesh(LBranch tree) {
-        BuildLineMesh(tree);
+    public MeshContainer BuildTreeMesh(Plant plant) {
+        BuildLineMesh(plant, 0);
         return meshCreator.GenerateMesh();
     }
+    
+    private void BuildLineMesh(Plant plant, int root) {
+        int partID = root;
 
-    private void BuildLineMesh(LBranch node) {
-        while (node != null) {
+        while (partID != -1) {
 
-            if (!node.IsBranchRoot) {
-                meshCreator.NextDirection(node.Prev.GetOrientationDirection(), node.State);
+            Plant.PlantPart part = plant.GetPart(partID);
+
+            if (!part.IsBranchRoot) {
+                Plant.PlantPart prev = plant.GetPart(part.Prev);
+                meshCreator.NextDirection(prev.State);
             }
 
-            foreach (LBranch child in node.Branches) {
+            foreach (int child in part.Children) {
                 meshCreator.Branch();
-                BuildLineMesh(child);
+                BuildLineMesh(plant, child);
                 meshCreator.Debranch();
             }
 
-            node = node.Next;
+            partID = part.Next;
         }
     }
 }

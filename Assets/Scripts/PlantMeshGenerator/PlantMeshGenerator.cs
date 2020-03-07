@@ -8,8 +8,6 @@ public class PlantMeshGenerator : IPlantMeshGenerator {
     #region fields
     private PlantMeshCreator creator;
 
-    private LBranch node;
-
     [SerializeField]
     private PlantSettings settings = new PlantSettings();
 
@@ -23,13 +21,13 @@ public class PlantMeshGenerator : IPlantMeshGenerator {
     public bool GenerateOnSettingChange { get => generateOnSettingChange; set => generateOnSettingChange = value; }
     public int GenerateTimeLimit { get => generateTimeLimit; set => generateTimeLimit = value; }
 
-    private TreeCreator treeCreator;
+    private TreeCreator plantCreator;
 
     private string axiomTest = "f(+f)f(-f(+f)f(+f)f)f(-f)f(+f)f(-f(-f)f(-f)f)f(-f)f(+f)f(-f(-f)f(+f)f(-f(-f)f(-f)f)f(-f)f(-f)f(-f(-f)f(+f)f)f(-f)f(-f)f)f(-f)f(-f)f(-f(-f)f(-f)f)f(-f)f(+f)f(-f(+f)f(+f)f)f(-f)f(-f)f(+f(-f)f(-f(+f)f(+f)f)f(-f)f(+f)f(+f(-f)f(+f)f)f(-f)f(+f)f(-f(-f)f(+f)f(-f(+f)f(+f)f)f(+f)f(+f)f(+f(-f)f(+f)f)f(-f)f(-f)f)f(-f)f(-f)f(-f(-f)f(+f)f)f(-f)f(+f)f(-f(-f)f(+f)f)f(-f)f(-f)f(+f(-f)f(-f)f(+f(-f)f(+f)f)f(-f)f(+f)f(+f(-f)f(+f)f)f(-f)f(+f)f)f(-f)f(+f)f(-f(+f)f(+f)f)f(-f)f(+f(-f)f(-f)f)f(-f)f(+f)f)f(-f)f(+f)f(+f(-f)f)f(+f)f(+f)f(+f(+f)f(+f)f)f(-f)f(-f)f(-f(-f)f(-f)(f(-f(-f)f(+f)f)f(-f)f(+f)f(-f(-f)f)f(-f)f(+f)f)f(-f)f(-f)f(+f(-f)f(+f)f)f(+f)f(-f)f(+f(-f)f(-f)f)f(-f)f(+f(+f)f(+f)f(-f(-f)f(-f)f)f(-f)f(+f)f(+f(-f)f(-f)f)f(-f)f(+f)f)f(+f)f(-f(+f)f(+f)f)f(+f)f(+f)f(+f(+f)f(+f)f)f(-f)f(-f)f(+f(-f)f(-f)f(-f(-f)f(+f)f)f(+f)f(+f)f(-f(-f)f)f(-f)f(+f)f(-f(-f)f(-f)f(-f(+f)f(+f)f)f(+f)f(-f)f(+f(+f)f(+f)f)f(-f)f(-f)f)f(+f)f(+f)f(+f(-f)f(+f)f)f(-f)f(+f)f(+f(+f)f(+f)f)f(-f)f(-f(-f)f(-f)f(+f(-f)f(+f)f)f(+f)f(+f)f(+f(+f)f(+f)f)f(-f)f(-f)f)f(-f)f(+f)f(-f(-f)f(-f)f)f(-f)f(+f)f)f(+f)f(+f)f(-f(-f)f(-f)f)f(-f)(f(-f)f(+f(-f)f)f(-f)f(+f)f(-f(-f)f(-f)f(-f(-f)f(-f)f)f(-f)f(-f)f(-f(-f)f(+f)f)f(-f)f(-f)f)f(+f)f(+f)f(-f(-f)f(+f)f)f(+f))f(+f)f(-f(-f)f(-f)f)f(-f)f(-f(-f)f(+f)f(-f(-f)f(+f)f)f(+f)f(+f)f(+f(+f)f(+f)f)f(-f)f(-f)f)f(-f)f(+f)f(-f(-f)f(-f)f)f(+f)f(+f)f(-f(-f)f(+f)f)f(+f)f(+f)f)";
     #endregion
 
     public void Initialize() {
-        treeCreator = new TreeCreator(Settings);
+        plantCreator = new TreeCreator(Settings);
     }
 
     private void OnValidate() {
@@ -60,11 +58,11 @@ public class PlantMeshGenerator : IPlantMeshGenerator {
 
         string treeString = Settings.Grammar.PerformIterations(Settings.Axiom, Settings.Iterations);
         Logger.Print("Tree string: " + treeString);
-        tree = treeCreator.CreateTree(treeString);
+        plant = plantCreator.CreatePlant(treeString);
     }
     public override void RebuildMeshes(bool autoResize = false) {
         creator = new PlantMeshCreator(Vector3.zero, Settings.Properties.StartingLineWidth);
-        plantMesh = creator.BuildTreeMesh(tree);
+        plantMesh = creator.BuildTreeMesh(plant);
 
         if (autoResize) {
             PrepareTransform();

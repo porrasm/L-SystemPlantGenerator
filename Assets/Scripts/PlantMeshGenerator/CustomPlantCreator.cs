@@ -55,7 +55,7 @@ public class CustomPlantCreator {
         selectedPartGenerator = CustomPlantMeshGenerator.Add(selectedPart.gameObject, owner);
 
         customPlantPartsGenerator.GeneratePlant();
-        customPlantGenerator.Tree = customPlantPartsGenerator.Tree;
+        customPlantGenerator.Plant = customPlantPartsGenerator.Plant.Cut(0);
         customPlantGenerator.GeneratePlant();
     }
 

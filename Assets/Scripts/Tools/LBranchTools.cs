@@ -8,45 +8,43 @@ using UnityEngine;
 public class LBranchTools {
 
     #region fields
-    private LBranch tree;
-    private Dictionary<LBranch, Vector2> branchPositions;
+    private Plant plant;
+    private Dictionary<int, Vector2> branchPositions;
     #endregion
 
     public int Count { get => branchPositions.Count; }
-    public LBranch Tree { get => tree; }
+    public Plant Plant { get => plant; }
 
-    public LBranchTools(LBranch root) {
-        if (!root.IsRoot) {
-            throw new Exception("Tree was not root.");
-        }
-        tree = root;
+    public LBranchTools(Plant plant) {
+        this.plant = plant;
         Initialize();
     }
 
     private void Initialize() {
-        branchPositions = new Dictionary<LBranch, Vector2>();
-        RecursivePositions(default, tree);
+        branchPositions = new Dictionary<int, Vector2>();
+        RecursivePositions(default, 0);
     }
-    private void RecursivePositions(Vector2 pos, LBranch node) {
-        if (node == null) {
-            return;
-        }
-        Vector2 nextPos = node.IsBranchRoot ? pos : node.GetEndPos(pos);
+    private void RecursivePositions(Vector2 pos, int partIndex) {
+        while (partIndex != -1) {
+            Plant.PlantPart part = plant.GetPart(partIndex);
+            Vector2 nextPos = part.IsBranchRoot ? pos : part.State.GetEndPos(pos);
 
-        branchPositions.Add(node, nextPos);
+            branchPositions.Add(partIndex, nextPos);
 
-        foreach (LBranch child in node.Branches) {
-            RecursivePositions(nextPos, child);
+            foreach (int child in part.Children) {
+                RecursivePositions(nextPos, child);
+            }
+            pos = nextPos;
+            partIndex = part.Next;
         }
-        RecursivePositions(nextPos, node.Next);
     }
 
     public LBranchInfo GetClosestPosition(Vector2 position) {
 
         float closestDistance = float.MaxValue;
-        KeyValuePair<LBranch, Vector2> closest;
+        KeyValuePair<int, Vector2> closest = new KeyValuePair<int, Vector2>(-1, new Vector2());
 
-        foreach (KeyValuePair<LBranch, Vector2> pair in branchPositions) {
+        foreach (KeyValuePair<int, Vector2> pair in branchPositions) {
             float newDistance = Vector2.Distance(position, pair.Value);
             if (newDistance < closestDistance) {
                 closestDistance = newDistance;
@@ -54,13 +52,14 @@ public class LBranchTools {
             }
         }
 
-        if (closest.Key == null) {
+        if (closest.Key == -1) {
             Logger.Print("Not found");
             return new LBranchInfo();
         }
 
         LBranchInfo info = new LBranchInfo();
-        info.Node = closest.Key;
+        info.Plant = plant;
+        info.PartID = closest.Key;
         info.Position = closest.Value;
 
         return info;
@@ -68,6 +67,8 @@ public class LBranchTools {
 }
 
 public struct LBranchInfo {
-    public LBranch Node;
+    public Plant Plant;
+    public int PartID;
+    public Plant.PlantPart Part { get { return Plant.GetPart(PartID); } }
     public Vector2 Position;
 }

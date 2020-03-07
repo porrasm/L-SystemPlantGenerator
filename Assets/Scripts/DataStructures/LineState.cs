@@ -14,7 +14,7 @@ public class LineState {
     public float Width = 0.05f;
     public float CurrentLength = 0;
     public float NextLength = 0.25f;
-    public Color Color = Color.white;
+    public SColor Color = new SColor(1, 1, 1, 1);
     #endregion
 
     public LineState Copy() {
@@ -28,6 +28,18 @@ public class LineState {
         copy.Color = Color;
 
         return copy;
+    }
+
+    public void AddAngle(int mult) {
+        Orientation += mult * Angle;
+    }
+
+    public Vector2 GetOrientationDirection() {
+        Vector2 dir = Vector2.up;
+        return (Quaternion.AngleAxis(Orientation, Vector3.forward) * dir).normalized;
+    }
+    public Vector2 GetEndPos(Vector2 lastPos) {
+        return lastPos + GetOrientationDirection() * CurrentLength;
     }
 
     #region parameters
@@ -57,4 +69,26 @@ public class LineState {
         }
     }
     #endregion
+}
+
+[Serializable]
+public struct SColor {
+    public float r;
+    public float g;
+    public float b;
+    public float a;
+    public SColor(float r, float g, float b, float a) {
+        this.r = r;
+        this.g = g;
+        this.b = b;
+        this.a = a;
+    }
+    public Color Color {
+        get {
+            return new Color(r, g, b, a);
+        }
+    }
+    public static implicit operator SColor(Color c) {
+        return new SColor(c.r, c.g, c.b, c.a);
+    }
 }

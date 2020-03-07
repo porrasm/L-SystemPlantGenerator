@@ -5,7 +5,6 @@ using UnityEngine;
 public class CustomPlantSlaveGenerator : IPlantMeshGenerator {
     #region fields
     private PlantMeshCreator creator;
-    private LBranch node;
     private PlantMeshGenerator Owner { get; set; }
     private TreeCreator treeCreator;
     public PlantSettings Settings { get => Owner?.Settings; }
@@ -42,11 +41,11 @@ public class CustomPlantSlaveGenerator : IPlantMeshGenerator {
 
         string treeString = Settings.Grammar.PerformIterations(Settings.Axiom, Settings.Iterations);
         Logger.Print("Tree string: " + treeString);
-        tree = treeCreator.CreateTree(treeString);
+        plant = treeCreator.CreatePlant(treeString);
     }
     public override void RebuildMeshes(bool autoResize = false) {
         creator = new PlantMeshCreator(Vector3.zero, Settings.Properties.StartingLineWidth);
-        plantMesh = creator.BuildTreeMesh(tree);
+        plantMesh = creator.BuildTreeMesh(plant);
 
         if (autoResize) {
             PrepareTransform();

@@ -16,12 +16,12 @@ public class CustomPlantMeshGenerator : IPlantMeshGenerator {
     }
 
     public override void RebuildMeshes(bool autoResize = false) {
-        if (tree == null) {
+        if (plant == null) {
             GetMesh(0).mesh = null;
             return;
         }
-        creator = new PlantMeshCreator(Vector3.zero, tree.State.Width);
-        plantMesh = creator.BuildTreeMesh(tree);
+        creator = new PlantMeshCreator(Vector3.zero, plant.GetPart(0).State.Width);
+        plantMesh = creator.BuildTreeMesh(plant);
 
         if (autoResize) {
             PrepareTransform();

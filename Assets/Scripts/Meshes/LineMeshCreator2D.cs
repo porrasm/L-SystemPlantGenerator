@@ -26,15 +26,12 @@ public class LineMeshCreator2D {
         lastPoint = branching.Pop();
     }
 
-    public void NextDirection(Vector3 direction, LineState state) {
+    public void NextDirection(LineState state) {
         if (state.CurrentLength <= 0) {
             throw new Exception("Length was 0 or negative");
         }
-        if (direction.normalized == Vector3.zero) {
-            throw new Exception("Invalid direction");
-        }
 
-        Vector3 nextPos = LastPoint.Pos + direction.normalized * state.CurrentLength;
+        Vector3 nextPos = state.GetEndPos(LastPoint.Pos);
 
         NextPoint(nextPos, state, state.Width);
     }
@@ -91,7 +88,7 @@ public class LineMeshCreator2D {
 
             foreach (Vector3 ver in v) {
                 vertices.Add(ver);
-                colors.Add(lines[i].State.Color);
+                colors.Add(lines[i].State.Color.Color);
 
                 if (ver.x > xMax) {
                     xMax = ver.x;

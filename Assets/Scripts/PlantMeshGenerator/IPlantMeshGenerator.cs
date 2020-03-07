@@ -6,8 +6,8 @@ public abstract class IPlantMeshGenerator : MonoBehaviour {
 
     #region fields
     [SerializeField]
-    protected LBranch tree;
-    public LBranch Tree { get => tree; set => tree = value; }
+    protected Plant plant;
+    public Plant Plant { get => plant; set => plant = value; }
 
     protected Transform meshes;
 
